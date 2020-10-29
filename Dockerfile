@@ -1,4 +1,4 @@
-FROM myrotvorets/node-current:latest AS base
+FROM myrotvorets/node-current-build:latest AS base
 USER root
 WORKDIR /srv/service
 RUN chown nobody:nogroup /srv/service
