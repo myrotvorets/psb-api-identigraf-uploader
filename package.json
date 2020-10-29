@@ -32,6 +32,7 @@
     "envalid": "^6.0.2",
     "express": "^4.17.1",
     "express-openapi-validator": "^4.3.6",
+    "fast-glob": "^3.2.4",
     "morgan": "^1.10.0",
     "sharp": "^0.26.2"
   },
