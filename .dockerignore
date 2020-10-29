@@ -1,0 +1,10 @@
+*
+!.npmrc
+!src
+!package.json
+!package-lock.json
+!tsconfig.json
+!healthcheck.sh
+
+src/**/.git
+*.d.ts
