@@ -102,7 +102,7 @@ export function uploadMultipleFilesMiddleware(field: string, minFiles: number, m
 
 async function cleanupFiles(req: Request): Promise<void> {
     const files = normalizeFiles(req);
-    const promises = files.map((file) => unlink(file.path));
+    const promises = files.filter((file) => file.path).map((file) => unlink(file.path));
     await Promise.all(promises);
 }
 
