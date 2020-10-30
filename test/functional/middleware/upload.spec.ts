@@ -25,14 +25,13 @@ import {
 jest.mock('multer');
 
 const mockedMulter = multer as jest.MockedFunction<typeof multer>;
-const mockedUnlink = fs.promises.unlink as jest.MockedFunction<typeof fs.promises.unlink>;
-console.warn = jest.fn();
-
-mockedMulter.mockImplementation(multerImplementation);
 mockedMulter.MulterError = jest.requireActual<typeof multer>('multer').MulterError;
+
+const mockedUnlink = fs.promises.unlink as jest.MockedFunction<typeof fs.promises.unlink>;
 
 let app: express.Express;
 
+const warn = console.warn;
 const env = { ...process.env };
 
 const UPLOAD_PATH = '/somewhere';
@@ -60,16 +59,20 @@ function checkSuccessfulUpload(res: Response): void {
 
 beforeEach(() => {
     jest.clearAllMocks();
+    mockedMulter.mockImplementation(multerImplementation);
+    multerSingle.mockReset();
+    multerArray.mockReset();
     app = buildApp();
 });
 
-afterEach(() => (process.env = { ...env }));
+afterEach(() => {
+    process.env = { ...env };
+    console.warn = warn;
+});
 
 describe('uploadSingleFileMiddleware', () => {
     it('should handle the case with no files', () => {
-        multerSingle
-            .mockReset()
-            .mockImplementation((): RequestHandler => (req, res, next: NextFunction): void => next());
+        multerSingle.mockImplementation((): RequestHandler => (req, res, next: NextFunction): void => next());
 
         app.use(uploadSingleFileMiddleware('field'));
         app.use(errorMiddleware);
@@ -78,7 +81,7 @@ describe('uploadSingleFileMiddleware', () => {
     });
 
     it('should handle the case with a non-image file', () => {
-        multerSingle.mockReset().mockImplementation(
+        multerSingle.mockImplementation(
             (): RequestHandler => (req: Request, res, next: NextFunction): void => {
                 req.file = { ...file, mimetype: 'text/plain' };
                 next();
@@ -92,7 +95,7 @@ describe('uploadSingleFileMiddleware', () => {
     });
 
     it('should handle the case with an empty file', () => {
-        multerSingle.mockReset().mockImplementation(
+        multerSingle.mockImplementation(
             (): RequestHandler => (req: Request, res, next: NextFunction): void => {
                 req.file = { ...file, size: 0 };
                 next();
@@ -107,7 +110,7 @@ describe('uploadSingleFileMiddleware', () => {
 
     it('should handle the normal file upload', () => {
         mockedUnlink.mockResolvedValue();
-        multerSingle.mockReset().mockImplementation(
+        multerSingle.mockImplementation(
             (): RequestHandler => (req: Request, res, next: NextFunction): void => {
                 req.file = { ...file };
                 next();
@@ -129,9 +132,7 @@ describe('uploadSingleFileMiddleware', () => {
 
 describe('uploadMultipleFilesMiddleware', () => {
     it('should handle the case with no files', () => {
-        multerArray
-            .mockReset()
-            .mockImplementation((): RequestHandler => (req, res, next: NextFunction): void => next());
+        multerArray.mockImplementation((): RequestHandler => (req, res, next: NextFunction): void => next());
 
         app.use(uploadMultipleFilesMiddleware('field', 1, 2));
         app.use(errorMiddleware);
@@ -140,7 +141,7 @@ describe('uploadMultipleFilesMiddleware', () => {
     });
 
     it('should handle the case with too few files', () => {
-        multerArray.mockReset().mockImplementation(
+        multerArray.mockImplementation(
             (): RequestHandler => (req: Request, res, next: NextFunction): void => {
                 req.files = [{ ...file, ...file }];
                 next();
@@ -154,7 +155,7 @@ describe('uploadMultipleFilesMiddleware', () => {
     });
 
     it('should handle the case with a non-image file', () => {
-        multerArray.mockReset().mockImplementation(
+        multerArray.mockImplementation(
             (): RequestHandler => (req: Request, res, next: NextFunction): void => {
                 req.files = [{ ...file, mimetype: 'text/plain' }];
                 next();
@@ -168,7 +169,7 @@ describe('uploadMultipleFilesMiddleware', () => {
     });
 
     it('should handle the case with an empty file', () => {
-        multerArray.mockReset().mockImplementation(
+        multerArray.mockImplementation(
             (): RequestHandler => (req: Request, res, next: NextFunction): void => {
                 req.files = [{ ...file, size: 0 }];
                 next();
@@ -183,7 +184,7 @@ describe('uploadMultipleFilesMiddleware', () => {
 
     it('should handle the normal file upload', () => {
         mockedUnlink.mockResolvedValue();
-        multerArray.mockReset().mockImplementation(
+        multerArray.mockImplementation(
             (): RequestHandler => (req: Request, res, next: NextFunction): void => {
                 req.files = [{ ...file }];
                 next();
@@ -231,6 +232,7 @@ describe('cleanUploadedFilesMiddleware', () => {
         });
 
         app.use(cleanUploadedFilesMiddleware);
+        console.warn = jest.fn();
 
         return request(app)
             .get('/')

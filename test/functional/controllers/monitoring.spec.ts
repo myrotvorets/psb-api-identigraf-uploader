@@ -39,7 +39,7 @@ function buildApp(): express.Express {
 }
 
 beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     app = buildApp();
     healthChecker.shutdownRequested = false;
 });
@@ -75,22 +75,22 @@ describe('MonitoringController', () => {
         });
 
         it('should fail when the system runs out of disk space', () => {
-            mockedStatVFS.mockReset().mockResolvedValue(outOfSpaceStats);
+            mockedStatVFS.mockResolvedValue(outOfSpaceStats);
             return checker503(app, 'ready', spaceIssueResponse).then(checkCallExpectations);
         });
 
         it('should fail when the system runs out of inodes', () => {
-            mockedStatVFS.mockReset().mockResolvedValue(outOfIndoesStats);
+            mockedStatVFS.mockResolvedValue(outOfIndoesStats);
             return checker503(app, 'ready', spaceIssueResponse).then(checkCallExpectations);
         });
 
         it('should fail when statvfs() fails', () => {
-            mockedStatVFS.mockReset().mockRejectedValue(new Error('Failure'));
+            mockedStatVFS.mockRejectedValue(new Error('Failure'));
             return checker503(app, 'ready', spaceIssueResponse).then(checkCallExpectations);
         });
 
         it('should fail when the target directory is not writable', () => {
-            mockedAccess.mockReset().mockRejectedValue(new Error());
+            mockedAccess.mockRejectedValue(new Error());
             return checker503(app, 'ready', uploadFolderIssueResponse).then(checkCallExpectations);
         });
     });

@@ -6,15 +6,13 @@ import type { ErrorResponse } from '@myrotvorets/express-microservice-middleware
 export const multerSingle = jest.fn();
 export const multerArray = jest.fn();
 
-export function multerImplementation(this: Record<string, unknown>): multer.Multer {
-    return {
-        single: multerSingle,
-        array: multerArray,
-        fields: jest.fn(),
-        any: jest.fn(),
-        none: jest.fn(),
-    };
-}
+export const multerImplementation = (): multer.Multer => ({
+    single: multerSingle,
+    array: multerArray,
+    fields: jest.fn(),
+    any: jest.fn(),
+    none: jest.fn(),
+});
 
 export const file: Express.Multer.File = {
     path: '/somewhere/between/the/sacred/silence/and/sleep',

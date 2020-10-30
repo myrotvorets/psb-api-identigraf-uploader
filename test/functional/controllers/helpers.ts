@@ -1,6 +1,8 @@
-import request from 'supertest';
+import request, { Response } from 'supertest';
 import type { NoParamCallback, PathLike } from 'fs';
 import type { VFSStats } from '@wwa/statvfs';
+import multer, { Multer, Options } from 'multer';
+import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 
 export function accessCallbackSuccess(path: PathLike, mode: number | undefined, callback: NoParamCallback): void;
 export function accessCallbackSuccess(path: PathLike, callback: NoParamCallback): void;
@@ -85,3 +87,19 @@ export const checker503 = (app: unknown, endpoint: string, match?: Record<string
             expect(res.body).toEqual(expect.objectContaining(match ?? {}));
         })
         .expect(503);
+
+export const multerImplementation = (options?: Options): Multer => {
+    const opts: Options = { ...(options || {}), storage: multer.memoryStorage() };
+    return jest.requireActual<typeof multer>('multer')(opts);
+};
+
+function checkError(res: Response, expectedStatus: number, expectedCode: string): void {
+    expect(res.body).not.toEqual({});
+    expect(res.body).toHaveProperty('code');
+    expect(res.body).toHaveProperty('status');
+    expect((res.body as ErrorResponse).status).toBe(expectedStatus);
+    expect((res.body as ErrorResponse).code).toBe(expectedCode);
+}
+
+export const checkUnsupportedMediaType = (res: Response): void => checkError(res, 415, 'UNSUPPORTED_MEDIA_TYPE');
+export const checkBadRequest = (res: Response): void => checkError(res, 400, 'BAD_REQUEST');

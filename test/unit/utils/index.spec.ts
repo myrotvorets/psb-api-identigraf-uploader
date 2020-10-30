@@ -3,9 +3,16 @@ import fs from 'fs';
 import { normalizeFiles, unlink } from '../../../src/utils';
 
 const mockedUnlink = fs.promises.unlink as jest.MockedFunction<typeof fs.promises.unlink>;
-console.warn = jest.fn();
+const warn = console.warn;
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+    jest.clearAllMocks();
+    mockedUnlink.mockReset();
+});
+
+afterEach(() => {
+    console.warn = warn;
+});
 
 describe('unlink', () => {
     beforeEach(() => mockedUnlink.mockResolvedValue());
@@ -15,13 +22,15 @@ describe('unlink', () => {
     });
 
     it('should not print anything on success', () => {
+        console.warn = jest.fn();
         return unlink('something').then(() => {
             expect(console.warn).toHaveBeenCalledTimes(0);
         });
     });
 
     it('should print a warning on failure', () => {
-        mockedUnlink.mockRejectedValue(new Error('VERY FATAL ERROR'));
+        console.warn = jest.fn();
+        mockedUnlink.mockRejectedValueOnce(new Error('VERY FATAL ERROR'));
         const file = 'non-existing-file';
         return unlink(file).then(() => {
             expect(console.warn).toHaveBeenCalledTimes(1);

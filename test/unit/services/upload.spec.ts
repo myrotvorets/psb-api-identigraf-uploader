@@ -10,11 +10,15 @@ jest.mock('sharp');
 const mockedMkDir = fs.promises.mkdir as jest.MockedFunction<typeof fs.promises.mkdir>;
 const mockedSharp = sharp as jest.MockedFunction<typeof sharp>;
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+    jest.clearAllMocks();
+    mockedMkDir.mockReset();
+    mockedSharp.mockReset();
+});
 
 describe('UploadService', () => {
     describe('uploadFile()', () => {
-        beforeEach(() => mockedMkDir.mockResolvedValue('whatever'));
+        beforeEach(() => mockedMkDir.mockResolvedValueOnce('whatever'));
 
         const file = {
             path: 'some-file.xxx',
@@ -44,8 +48,8 @@ describe('UploadService', () => {
         };
 
         it('should handle non-progressive 4:2:0 JPEGs', () => {
-            mockedSharp.mockImplementation(sharpImplementation);
-            metadataMock.mockResolvedValue(normalMetadata);
+            mockedSharp.mockImplementationOnce(sharpImplementation);
+            metadataMock.mockResolvedValueOnce(normalMetadata);
             return UploadService.uploadFile(file, guid).then((s) => {
                 commonChecks(s);
                 expect(jpegMock).toHaveBeenCalledTimes(0);
@@ -53,8 +57,8 @@ describe('UploadService', () => {
         });
 
         it('should handle PNGs', () => {
-            mockedSharp.mockImplementation(sharpImplementation);
-            metadataMock.mockResolvedValue(metadataPng);
+            mockedSharp.mockImplementationOnce(sharpImplementation);
+            metadataMock.mockResolvedValueOnce(metadataPng);
             return UploadService.uploadFile(file, guid).then((s) => {
                 commonChecks(s);
                 jpegChecks();
@@ -62,8 +66,8 @@ describe('UploadService', () => {
         });
 
         it('should handle all other JPEgs', () => {
-            mockedSharp.mockImplementation(sharpImplementation);
-            metadataMock.mockResolvedValue(metadataOtherJpeg);
+            mockedSharp.mockImplementationOnce(sharpImplementation);
+            metadataMock.mockResolvedValueOnce(metadataOtherJpeg);
             return UploadService.uploadFile(file, guid).then((s) => {
                 commonChecks(s);
                 jpegChecks();
