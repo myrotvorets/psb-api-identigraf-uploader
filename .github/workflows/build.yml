@@ -42,7 +42,7 @@ jobs:
         id: ver
 
       - name: Fix paths in test-report.xml
-        run: sed -i "s@/srv/service@/github/workspace@g" test-report.xml
+        run: sed -i "s@$(pwd)@/github/workspace@g" test-report.xml
         if: ${{ matrix.node_version == '12' }}
 
       - name: SonarCloud Scan
