@@ -2,7 +2,7 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 import multer, { MulterError } from 'multer';
 import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import { Environment, environment } from '../lib/environment';
-import { unlink } from '../utils';
+import { normalizeFiles, unlink } from '../utils';
 
 const singleFileUploader = (env: Environment): multer.Multer =>
     multer({
@@ -101,24 +101,9 @@ export function uploadMultipleFilesMiddleware(field: string, minFiles: number, m
 }
 
 async function cleanupFiles(req: Request): Promise<void> {
-    if (req.file) {
-        await unlink(req.file.path);
-    } else if (req.files) {
-        const { files } = req;
-        let promises: Promise<unknown>[];
-        if (Array.isArray(files)) {
-            promises = files.map((file) => unlink(file.path));
-        } else {
-            promises = [];
-            Object.keys(files).forEach((key) => {
-                files[key].forEach((file) => promises.push(unlink(file.path)));
-            });
-        }
-
-        if (promises.length) {
-            await Promise.all(promises);
-        }
-    }
+    const files = normalizeFiles(req);
+    const promises = files.map((file) => unlink(file.path));
+    await Promise.all(promises);
 }
 
 export function cleanUploadedFilesMiddleware(req: Request, res: Response, next: NextFunction): void {
