@@ -110,6 +110,16 @@ export function cleanUploadedFilesMiddleware(req: Request, res: Response, next: 
     cleanupFiles(req).finally(next);
 }
 
+const errorLookupTable: Record<string, string> = {
+    LIMIT_PART_COUNT: 'UPLOAD_LIMIT_PART_COUNT',
+    LIMIT_FILE_SIZE: 'UPLOAD_LIMIT_FILE_SIZE',
+    LIMIT_FILE_COUNT: 'UPLOAD_LIMIT_FILE_COUNT',
+    LIMIT_FIELD_KEY: 'UPLOAD_LIMIT_FIELD_KEY',
+    LIMIT_FIELD_VALUE: 'UPLOAD_LIMIT_FIELD_VALUE',
+    LIMIT_FIELD_COUNT: 'UPLOAD_LIMIT_FIELD_COUNT',
+    LIMIT_UNEXPECTED_FILE: 'UPLOAD_LIMIT_UNEXPECTED_FILE',
+};
+
 export async function uploadErrorHandlerMiddleware(
     err: unknown,
     req: Request,
@@ -122,24 +132,9 @@ export async function uploadErrorHandlerMiddleware(
         const response: ErrorResponse = {
             success: false,
             status: 400,
-            code: 'BAD_REQUEST',
+            code: errorLookupTable[err.code] || 'BAD_REQUEST',
             message: err.message,
         };
-
-        switch (err.code) {
-            case 'LIMIT_PART_COUNT':
-            case 'LIMIT_FILE_SIZE':
-            case 'LIMIT_FILE_COUNT':
-            case 'LIMIT_FIELD_KEY':
-            case 'LIMIT_FIELD_VALUE':
-            case 'LIMIT_FIELD_COUNT':
-            case 'LIMIT_UNEXPECTED_FILE':
-                response.code = `UPLOAD_${err.code}`;
-                break;
-
-            default:
-                break;
-        }
 
         next(response);
     } else {
