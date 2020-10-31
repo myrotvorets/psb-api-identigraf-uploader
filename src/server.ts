@@ -9,6 +9,7 @@ import { environment } from './lib/environment';
 
 import uploadController from './controllers/upload';
 import monitoringController from './controllers/monitoring';
+import { cleanUploadedFilesMiddleware, uploadErrorHandlerMiddleware } from './middleware/upload';
 
 export async function configureApp(app: express.Express): Promise<void> {
     const env = environment();
@@ -26,6 +27,8 @@ export async function configureApp(app: express.Express): Promise<void> {
 
     app.use('/', uploadController());
     app.use('/', notFoundMiddleware);
+    app.use(cleanUploadedFilesMiddleware);
+    app.use(uploadErrorHandlerMiddleware);
     app.use(errorMiddleware);
 }
 

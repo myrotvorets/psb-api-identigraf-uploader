@@ -1,12 +1,11 @@
 import path from 'path';
-import fs from 'fs';
+import { constants, promises } from 'fs';
 import { NextFunction, Request, RequestHandler, Response, Router } from 'express';
 import asyncWrapper from '@myrotvorets/express-async-middleware-wrapper';
 import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import fg from 'fast-glob';
 import { Environment, environment } from '../lib/environment';
 import { UploadService } from '../services/upload';
-import { cleanUploadedFilesMiddleware, uploadErrorHandlerMiddleware } from '../middleware/upload';
 
 interface UploadParams extends Record<string, string> {
     guid: string;
@@ -51,23 +50,24 @@ async function compareUploadHandler(
 }
 
 function sendFile(fname: string, res: Response, next: NextFunction): void {
-    fs.access(fname, fs.constants.R_OK, (err) => {
-        if (!err) {
+    promises
+        .access(fname, constants.R_OK)
+        .then(() =>
             res.sendFile(fname, {
                 maxAge: 31556952,
-            });
-        } else {
+            }),
+        )
+        .catch(() =>
             next({
                 success: false,
                 status: 404,
                 code: 'NOT_FOUND',
                 message: 'File not found',
-            } as ErrorResponse);
-        }
-    });
+            } as ErrorResponse),
+        );
 }
 
-function retrieveHandler(env: Environment): RequestHandler<UploadParams> {
+function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams> {
     return (req: Request<UploadParams>, res: Response, next: NextFunction): void => {
         const { guid } = req.params;
         const fname = path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid));
@@ -126,16 +126,13 @@ export default function (): Router {
 
     router.get(
         '/get/:guid([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})',
-        retrieveHandler(env),
+        retrieveSearchHandler(env),
     );
 
     router.get(
         '/count/:guid([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})',
         asyncWrapper(countPhotosHandler(env) as RequestHandler),
     );
-
-    router.use(cleanUploadedFilesMiddleware);
-    router.use(uploadErrorHandlerMiddleware);
 
     return router;
 }
