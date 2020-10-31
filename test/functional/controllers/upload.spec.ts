@@ -97,6 +97,16 @@ describe('searchUploadHandler', () => {
                 .expect('Content-Type', /json/u)
                 .expect(checkBadRequest);
         });
+
+        it('should fail on a bad GUID', () => {
+            return request(app)
+                .post('/search/Z0000000-0000-0000-0000-000000000000')
+                .set('Content-Type', 'image/png')
+                .attach('photo', `${__dirname}/../../fixtures/0057B7.png`)
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
     });
 
     describe('Normal operation', () => {
@@ -113,6 +123,66 @@ describe('searchUploadHandler', () => {
 });
 
 describe('compareUploadHandler', () => {
+    describe('Error handling', () => {
+        it('should fail on empty upload (no Content-Type)', () => {
+            return request(app)
+                .post('/compare/00000000-0000-0000-0000-000000000000')
+                .expect(415)
+                .expect('Content-Type', /json/u)
+                .expect(checkUnsupportedMediaType);
+        });
+
+        it('should fail on empty upload (with Content-Type)', () => {
+            return request(app)
+                .post('/compare/00000000-0000-0000-0000-000000000000')
+                .set('Content-Type', 'image/png')
+                .expect(415)
+                .expect('Content-Type', /json/u)
+                .expect(checkUnsupportedMediaType);
+        });
+
+        it('should fail on one file', () => {
+            return request(app)
+                .post('/compare/00000000-0000-0000-0000-000000000000')
+                .attach('photo', `${__dirname}/../../fixtures/0057B7.png`)
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+
+        it('should fail on too many files', () => {
+            return request(app)
+                .post('/compare/00000000-0000-0000-0000-000000000000')
+                .set('Content-Type', 'multipart/form-data')
+                .attach('photos', `${__dirname}/../../fixtures/0057B7.png`)
+                .attach('photos', `${__dirname}/../../fixtures/FFD700.png`)
+                .attach('photos', `${__dirname}/../../fixtures/0057B7.png`)
+                .attach('photos', `${__dirname}/../../fixtures/FFD700.png`)
+                .attach('photos', `${__dirname}/../../fixtures/0057B7.png`)
+                .attach('photos', `${__dirname}/../../fixtures/FFD700.png`)
+                .attach('photos', `${__dirname}/../../fixtures/0057B7.png`)
+                .attach('photos', `${__dirname}/../../fixtures/FFD700.png`)
+                .attach('photos', `${__dirname}/../../fixtures/0057B7.png`)
+                .attach('photos', `${__dirname}/../../fixtures/FFD700.png`)
+                .attach('photos', `${__dirname}/../../fixtures/0057B7.png`)
+                .attach('photos', `${__dirname}/../../fixtures/FFD700.png`)
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+
+        it('should fail on a bad GUID', () => {
+            return request(app)
+                .post('/compare/Z0000000-0000-0000-0000-000000000000')
+                .set('Content-Type', 'multipart/form-data')
+                .attach('photos', `${__dirname}/../../fixtures/0057B7.png`)
+                .attach('photos', `${__dirname}/../../fixtures/FFD700.png`)
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+    });
+
     describe('Normal operation', () => {
         it('should behave correctly', () => {
             return request(app)
@@ -128,6 +198,16 @@ describe('compareUploadHandler', () => {
 });
 
 describe('retrieveSearchHandler', () => {
+    describe('Error handling', () => {
+        it('should fail on a bad GUID', () => {
+            return request(app)
+                .get('/get/Z0000000-0000-0000-0000-000000000000')
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+    });
+
     describe('Normal operation', () => {
         it('should handle "File not found" condition', () => {
             mockedAccess.mockRejectedValueOnce(new Error('FAIL'));
@@ -143,6 +223,32 @@ describe('retrieveSearchHandler', () => {
 });
 
 describe('retrieveCompareHandler', () => {
+    describe('Error handling', () => {
+        it('should fail on a bad GUID', () => {
+            return request(app)
+                .get('/get/Z0000000-0000-0000-0000-000000000000/1')
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+
+        it('should fail on a bad number', () => {
+            return request(app)
+                .get('/get/00000000-0000-0000-0000-000000000000/Z')
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+
+        it('should fail on a too large number', () => {
+            return request(app)
+                .get('/get/00000000-0000-0000-0000-000000000000/100')
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+    });
+
     describe('Normal operation', () => {
         it('should handle "File not found" condition', () => {
             mockedAccess.mockRejectedValueOnce(new Error('FAIL'));
@@ -158,6 +264,16 @@ describe('retrieveCompareHandler', () => {
 });
 
 describe('countHandler', () => {
+    describe('Error handling', () => {
+        it('should fail on a bad GUID', () => {
+            return request(app)
+                .get('/count/Z0000000-0000-0000-0000-000000000000')
+                .expect(400)
+                .expect('Content-Type', /json/u)
+                .expect(checkBadRequest);
+        });
+    });
+
     describe('Normal operation', () => {
         it('should behave correctly', () => {
             const filemask = 'blah';

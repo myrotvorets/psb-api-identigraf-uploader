@@ -108,30 +108,11 @@ export default function (): Router {
     const env = environment();
     const router = Router();
 
-    router.post(
-        '/search/:guid([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})',
-        asyncWrapper(searchUploadHandler as RequestHandler),
-    );
-
-    router.post(
-        '/compare/:guid([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})',
-        asyncWrapper(compareUploadHandler as RequestHandler),
-    );
-
-    router.get(
-        '/get/:guid([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})/:number([0-9]+)',
-        retrieveCompareHandler(env),
-    );
-
-    router.get(
-        '/get/:guid([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})',
-        retrieveSearchHandler(env),
-    );
-
-    router.get(
-        '/count/:guid([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})',
-        asyncWrapper(countPhotosHandler(env) as RequestHandler),
-    );
+    router.post('/search/:guid', asyncWrapper(searchUploadHandler as RequestHandler));
+    router.post('/compare/:guid', asyncWrapper(compareUploadHandler as RequestHandler));
+    router.get('/get/:guid/:number', retrieveCompareHandler(env));
+    router.get('/get/:guid', retrieveSearchHandler(env));
+    router.get('/count/:guid', asyncWrapper(countPhotosHandler(env) as RequestHandler));
 
     return router;
 }
