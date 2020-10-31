@@ -26,11 +26,13 @@ export async function configureApp(app: express.Express): Promise<void> {
         },
     });
 
-    app.use('/', uploadController());
-    app.use('/', notFoundMiddleware);
-    app.use(cleanUploadedFilesMiddleware());
-    app.use(uploadErrorHandlerMiddleware);
-    app.use(errorMiddleware);
+    app.use(
+        uploadController(),
+        notFoundMiddleware,
+        cleanUploadedFilesMiddleware(),
+        uploadErrorHandlerMiddleware,
+        errorMiddleware,
+    );
 }
 
 /* istanbul ignore next */
