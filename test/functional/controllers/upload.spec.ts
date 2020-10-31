@@ -219,6 +219,19 @@ describe('retrieveSearchHandler', () => {
                 .expect('Content-Type', /json/u)
                 .expect(checkNotFoundResponse);
         });
+
+        it('should return the file when it exists', async () => {
+            const file = `${__dirname}/../../fixtures/0057B7.png`;
+            const buffer = await promises.readFile(file);
+
+            mockedAccess.mockResolvedValueOnce();
+            mockedFBG.mockImplementationOnce(() => `/../${file}`);
+            return request(app)
+                .get('/get/00000000-0000-0000-0000-000000000000')
+                .expect(200)
+                .expect('Content-Type', /image\/png/u)
+                .expect((res) => expect(res.body).toStrictEqual(buffer));
+        });
     });
 });
 
@@ -259,6 +272,19 @@ describe('retrieveCompareHandler', () => {
                 .expect(404)
                 .expect('Content-Type', /json/u)
                 .expect(checkNotFoundResponse);
+        });
+
+        it('should return the file when it exists', async () => {
+            const file = `${__dirname}/../../fixtures/FFD700.png`;
+            const buffer = await promises.readFile(file);
+
+            mockedAccess.mockResolvedValueOnce();
+            mockedFBG.mockImplementationOnce(() => `/../${file}`);
+            return request(app)
+                .get('/get/00000000-0000-0000-0000-000000000000/1')
+                .expect(200)
+                .expect('Content-Type', /image\/png/u)
+                .expect((res) => expect(res.body).toStrictEqual(buffer));
         });
     });
 });

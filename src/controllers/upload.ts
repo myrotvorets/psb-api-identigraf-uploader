@@ -69,7 +69,7 @@ function sendFile(fname: string, res: Response, next: NextFunction): void {
 function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams> {
     return (req: Request<UploadParams>, res: Response, next: NextFunction): void => {
         const { guid } = req.params;
-        const fname = path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid));
+        const fname = path.resolve(path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid)));
         sendFile(fname, res, next);
     };
 }
@@ -77,7 +77,10 @@ function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams> {
 function retrieveCompareHandler(env: Environment): RequestHandler<UploadParams> {
     return (req: Request<UploadParams>, res: Response, next: NextFunction): void => {
         const { guid, number } = req.params;
-        const fname = path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(`${guid}-${number}`));
+        const fname = path.resolve(
+            path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(`${guid}-${number}`)),
+        );
+
         sendFile(fname, res, next);
     };
 }
@@ -90,7 +93,10 @@ interface CountPhotosResponse {
 function countPhotosHandler(env: Environment): RequestHandler<UploadParams> {
     return async (req: Request<UploadParams>, res: Response<CountPhotosResponse>): Promise<void> => {
         const { guid } = req.params;
-        const fname = path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid, '-*.jpg'));
+        const fname = path.resolve(
+            path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid, '-*.jpg')),
+        );
+
         const entries = await fg(fname, {
             braceExpansion: false,
             onlyFiles: true,
