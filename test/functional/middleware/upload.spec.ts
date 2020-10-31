@@ -1,26 +1,12 @@
 import '../../helpers/mockfs';
 import fs from 'fs';
-import express, { NextFunction, Request, RequestHandler } from 'express';
+import express, { NextFunction } from 'express';
 import request from 'supertest';
 import { ErrorResponse, errorMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import multer, { ErrorCode, MulterError } from 'multer';
-import {
-    cleanUploadedFilesMiddleware,
-    uploadErrorHandlerMiddleware,
-    uploadMultipleFilesMiddleware,
-    uploadSingleFileMiddleware,
-} from '../../../src/middleware/upload';
+import { cleanUploadedFilesMiddleware, uploadErrorHandlerMiddleware } from '../../../src/middleware/upload';
 import { environment } from '../../../src/lib/environment';
-import {
-    checkEmptyFile,
-    checkNoFiles,
-    checkTooFewFiles,
-    checkUnsupportedFile,
-    file,
-    multerArray,
-    multerImplementation,
-    multerSingle,
-} from './helpers';
+import { file, multerArray, multerImplementation, multerSingle } from './helpers';
 
 jest.mock('multer');
 
@@ -51,12 +37,6 @@ function buildApp(): express.Express {
     return application;
 }
 
-function checkSuccessfulUpload(res: Response): void {
-    expect(res.body).toEqual({});
-    expect(mockedUnlink).toHaveBeenCalledTimes(1);
-    expect(mockedUnlink).toHaveBeenCalledWith(file.path);
-}
-
 beforeEach(() => {
     jest.clearAllMocks();
     mockedMulter.mockImplementation(multerImplementation);
@@ -68,140 +48,6 @@ beforeEach(() => {
 afterEach(() => {
     process.env = { ...env };
     console.warn = warn;
-});
-
-describe('uploadSingleFileMiddleware', () => {
-    it('should handle the case with no files', () => {
-        multerSingle.mockImplementation((): RequestHandler => (req, res, next: NextFunction): void => next());
-
-        app.use(uploadSingleFileMiddleware('field'));
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(400).expect('Content-Type', /json/u).expect(checkNoFiles);
-    });
-
-    it('should handle the case with a non-image file', () => {
-        multerSingle.mockImplementation(
-            (): RequestHandler => (req: Request, res, next: NextFunction): void => {
-                req.file = { ...file, mimetype: 'text/plain' };
-                next();
-            },
-        );
-
-        app.use(uploadSingleFileMiddleware('field'));
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(400).expect('Content-Type', /json/u).expect(checkUnsupportedFile);
-    });
-
-    it('should handle the case with an empty file', () => {
-        multerSingle.mockImplementation(
-            (): RequestHandler => (req: Request, res, next: NextFunction): void => {
-                req.file = { ...file, size: 0 };
-                next();
-            },
-        );
-
-        app.use(uploadSingleFileMiddleware('field'));
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(400).expect('Content-Type', /json/u).expect(checkEmptyFile);
-    });
-
-    it('should handle the normal file upload', () => {
-        mockedUnlink.mockResolvedValue();
-        multerSingle.mockImplementation(
-            (): RequestHandler => (req: Request, res, next: NextFunction): void => {
-                req.file = { ...file };
-                next();
-            },
-        );
-
-        app.use(uploadSingleFileMiddleware('field'));
-        app.use((req, res, next) => {
-            res.json({});
-            next();
-        });
-
-        app.use(cleanUploadedFilesMiddleware);
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(200).expect('Content-Type', /json/u).expect(checkSuccessfulUpload);
-    });
-});
-
-describe('uploadMultipleFilesMiddleware', () => {
-    it('should handle the case with no files', () => {
-        multerArray.mockImplementation((): RequestHandler => (req, res, next: NextFunction): void => next());
-
-        app.use(uploadMultipleFilesMiddleware('field', 1, 2));
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(400).expect('Content-Type', /json/u).expect(checkNoFiles);
-    });
-
-    it('should handle the case with too few files', () => {
-        multerArray.mockImplementation(
-            (): RequestHandler => (req: Request, res, next: NextFunction): void => {
-                req.files = [{ ...file, ...file }];
-                next();
-            },
-        );
-
-        app.use(uploadMultipleFilesMiddleware('field', 3, 4));
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(400).expect('Content-Type', /json/u).expect(checkTooFewFiles);
-    });
-
-    it('should handle the case with a non-image file', () => {
-        multerArray.mockImplementation(
-            (): RequestHandler => (req: Request, res, next: NextFunction): void => {
-                req.files = [{ ...file, mimetype: 'text/plain' }];
-                next();
-            },
-        );
-
-        app.use(uploadMultipleFilesMiddleware('field', 1, 2));
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(400).expect('Content-Type', /json/u).expect(checkUnsupportedFile);
-    });
-
-    it('should handle the case with an empty file', () => {
-        multerArray.mockImplementation(
-            (): RequestHandler => (req: Request, res, next: NextFunction): void => {
-                req.files = [{ ...file, size: 0 }];
-                next();
-            },
-        );
-
-        app.use(uploadMultipleFilesMiddleware('field', 1, 2));
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(400).expect('Content-Type', /json/u).expect(checkEmptyFile);
-    });
-
-    it('should handle the normal file upload', () => {
-        mockedUnlink.mockResolvedValue();
-        multerArray.mockImplementation(
-            (): RequestHandler => (req: Request, res, next: NextFunction): void => {
-                req.files = [{ ...file }];
-                next();
-            },
-        );
-
-        app.use(uploadMultipleFilesMiddleware('field', 1, 2));
-        app.use((req, res, next) => {
-            res.json({});
-            next();
-        });
-
-        app.use(cleanUploadedFilesMiddleware);
-        app.use(errorMiddleware);
-
-        return request(app).get('/').expect(200).expect('Content-Type', /json/u).expect(checkSuccessfulUpload);
-    });
 });
 
 describe('cleanUploadedFilesMiddleware', () => {
