@@ -39,8 +39,7 @@ async function compareUploadHandler(
     const files = req.files as Express.Multer.File[];
     const { guid } = req.params;
 
-    const promises = files.map((file, index) => UploadService.uploadFile(file, `${guid}-${index}`));
-    await Promise.all(promises);
+    await Promise.all(files.map((file, index) => UploadService.uploadFile(file, `${guid}-${index}`)));
 
     res.json({
         success: true,
