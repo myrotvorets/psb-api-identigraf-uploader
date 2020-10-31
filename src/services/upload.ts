@@ -2,8 +2,6 @@ import { promises } from 'fs';
 import { join, sep } from 'path';
 import sharp from 'sharp';
 
-const mkdir = promises.mkdir;
-
 export class UploadService {
     public static async uploadFile(
         file: Pick<Express.Multer.File, 'path' | 'destination'>,
@@ -15,7 +13,7 @@ export class UploadService {
         const destPath = join(file.destination, hashedPath);
         const destJpeg = join(destPath, filename);
 
-        await mkdir(destPath, { recursive: true, mode: 0o755 });
+        await promises.mkdir(destPath, { recursive: true, mode: 0o755 });
         await img.toFile(destJpeg);
 
         return join(hashedPath, filename);

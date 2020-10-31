@@ -1,19 +1,9 @@
-import '../../helpers/mockfs';
-import fs from 'fs';
 import express, { NextFunction } from 'express';
 import request from 'supertest';
 import { ErrorResponse, errorMiddleware } from '@myrotvorets/express-microservice-middlewares';
-import multer, { ErrorCode, MulterError } from 'multer';
-import { cleanUploadedFilesMiddleware, uploadErrorHandlerMiddleware } from '../../../src/middleware/upload';
+import { ErrorCode, MulterError } from 'multer';
+import { uploadErrorHandlerMiddleware } from '../../../src/middleware/upload';
 import { environment } from '../../../src/lib/environment';
-import { file, multerArray, multerImplementation, multerSingle } from './helpers';
-
-jest.mock('multer');
-
-const mockedMulter = multer as jest.MockedFunction<typeof multer>;
-mockedMulter.MulterError = jest.requireActual<typeof multer>('multer').MulterError;
-
-const mockedUnlink = fs.promises.unlink as jest.MockedFunction<typeof fs.promises.unlink>;
 
 let app: express.Express;
 
@@ -38,10 +28,7 @@ function buildApp(): express.Express {
 }
 
 beforeEach(() => {
-    jest.clearAllMocks();
-    mockedMulter.mockImplementation(multerImplementation);
-    multerSingle.mockReset();
-    multerArray.mockReset();
+    jest.resetAllMocks();
     app = buildApp();
 });
 
@@ -50,72 +37,9 @@ afterEach(() => {
     console.warn = warn;
 });
 
-describe('cleanUploadedFilesMiddleware', () => {
-    beforeEach(() => mockedUnlink.mockResolvedValue());
-
-    it('should handle the case with no files', () => {
-        app.use('/', (req, res, next: NextFunction) => {
-            res.json({});
-            next();
-        });
-
-        app.use(cleanUploadedFilesMiddleware);
-
-        return request(app)
-            .get('/')
-            .expect(200)
-            .expect('Content-Type', /json/u)
-            .expect({})
-            .expect(() => expect(mockedUnlink).not.toHaveBeenCalled());
-    });
-
-    it('should succeed even if unlink() fails', () => {
-        mockedUnlink.mockRejectedValue(new Error());
-        app.use('/', (req, res, next: NextFunction) => {
-            req.file = { ...file };
-            res.json({});
-            next();
-        });
-
-        app.use(cleanUploadedFilesMiddleware);
-        console.warn = jest.fn();
-
-        return request(app)
-            .get('/')
-            .expect(200)
-            .expect('Content-Type', /json/u)
-            .expect({})
-            .expect(() => {
-                expect(mockedUnlink).toHaveBeenCalledTimes(1);
-                expect(mockedUnlink).toHaveBeenCalledWith(file.path);
-                expect(console.warn).toHaveBeenCalledTimes(1);
-            });
-    });
-
-    it('should skip files with undefined path', () => {
-        app.use('/', (req, res, next: NextFunction) => {
-            req.file = { ...file, path: (undefined as unknown) as string };
-            res.json({});
-            next();
-        });
-
-        app.use(cleanUploadedFilesMiddleware);
-
-        return request(app)
-            .get('/')
-            .expect(200)
-            .expect('Content-Type', /json/u)
-            .expect({})
-            .expect(() => expect(mockedUnlink).not.toHaveBeenCalled());
-    });
-});
-
 describe('uploadErrorHandlerMiddleware', () => {
-    const cleanUploadedFilesMiddlewareSpy = jest.fn((req, res, next) => cleanUploadedFilesMiddleware(req, res, next));
-
     it('should not modify non-multer errors', () => {
         app.use('/', (req, res, next: NextFunction) => next(new Error()));
-        app.use(cleanUploadedFilesMiddlewareSpy);
         app.use(uploadErrorHandlerMiddleware);
         app.use(errorMiddleware);
         return request(app)
@@ -126,7 +50,6 @@ describe('uploadErrorHandlerMiddleware', () => {
                 expect(res.body).not.toEqual({});
                 expect(res.body).toHaveProperty('code');
                 expect((res.body as ErrorResponse).code).toBe('UNKNOWN_ERROR');
-                expect(cleanUploadedFilesMiddlewareSpy).not.toHaveBeenCalled();
             });
     });
 
@@ -141,7 +64,6 @@ describe('uploadErrorHandlerMiddleware', () => {
         ['OTHER_ERROR' as ErrorCode, 'BAD_REQUEST'],
     ])('should properly handle Multer errors (%s => %s)', (error, expectedCode) => {
         app.use('/', (req, res, next: NextFunction) => next(new MulterError(error)));
-        app.use(cleanUploadedFilesMiddlewareSpy);
         app.use(uploadErrorHandlerMiddleware);
         app.use(errorMiddleware);
         return request(app)
@@ -152,7 +74,6 @@ describe('uploadErrorHandlerMiddleware', () => {
                 expect(res.body).not.toEqual({});
                 expect(res.body).toHaveProperty('code');
                 expect((res.body as ErrorResponse).code).toBe(expectedCode);
-                expect(cleanUploadedFilesMiddlewareSpy).not.toHaveBeenCalled();
             });
     });
 });

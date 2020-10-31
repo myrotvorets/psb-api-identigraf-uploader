@@ -1,5 +1,4 @@
-import '../../helpers/mockfs';
-import fs from 'fs';
+import { promises } from 'fs';
 import { sep } from 'path';
 import sharp from 'sharp';
 import { UploadService } from '../../../src/services/upload';
@@ -7,14 +6,10 @@ import { jpegMock, metadataMock, metadataOtherJpeg, metadataPng, normalMetadata,
 
 jest.mock('sharp');
 
-const mockedMkDir = fs.promises.mkdir as jest.MockedFunction<typeof fs.promises.mkdir>;
+const mockedMkDir = jest.spyOn(promises, 'mkdir');
 const mockedSharp = sharp as jest.MockedFunction<typeof sharp>;
 
-beforeEach(() => {
-    jest.clearAllMocks();
-    mockedMkDir.mockReset();
-    mockedSharp.mockReset();
-});
+beforeEach(() => jest.resetAllMocks());
 
 describe('UploadService', () => {
     describe('uploadFile()', () => {

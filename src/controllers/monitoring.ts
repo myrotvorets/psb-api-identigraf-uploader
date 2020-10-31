@@ -14,24 +14,19 @@ import { Environment } from '../lib/environment';
 
 export let healthChecker = new HealthChecker();
 
-const { access } = promises;
-
 export default function (env: Environment): Router {
     const router = Router();
 
     const dirCheck = new ReadinessCheck(
         'upload folder',
-        (): Promise<void> => {
-            const path = env.IDENTIGRAF_UPLOAD_FOLDER;
-            return access(path, constants.F_OK | constants.R_OK | constants.W_OK);
-        },
+        (): Promise<void> =>
+            promises.access(env.IDENTIGRAF_UPLOAD_FOLDER, constants.F_OK | constants.R_OK | constants.W_OK),
     );
 
     const diskSpaceCheck = new ReadinessCheck(
         'free disk space',
         (): Promise<void> => {
-            const path = env.IDENTIGRAF_UPLOAD_FOLDER;
-            return statvfs(path).then((stats) => {
+            return statvfs(env.IDENTIGRAF_UPLOAD_FOLDER).then((stats) => {
                 if (stats.blocks && stats.bavail * stats.bsize < 1048576) {
                     return Promise.reject(new Error('Too few free disk space'));
                 }

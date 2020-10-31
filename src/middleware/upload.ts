@@ -1,17 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { MulterError } from 'multer';
 import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
-import { normalizeFiles, unlink } from '../utils';
-
-async function cleanupFiles(req: Request): Promise<void> {
-    const files = normalizeFiles(req);
-    const promises = files.filter((file) => file.path).map((file) => unlink(file.path));
-    await Promise.all(promises);
-}
-
-export function cleanUploadedFilesMiddleware(req: Request, res: Response, next: NextFunction): void {
-    cleanupFiles(req).finally(next);
-}
+import { cleanupFilesAfterMulter } from '@myrotvorets/clean-up-after-multer';
 
 const errorLookupTable: Record<string, string> = {
     LIMIT_PART_COUNT: 'UPLOAD_LIMIT_PART_COUNT',
@@ -29,7 +19,7 @@ export async function uploadErrorHandlerMiddleware(
     res: Response,
     next: NextFunction,
 ): Promise<void> {
-    await cleanupFiles(req);
+    await cleanupFilesAfterMulter(req);
 
     if (err && typeof err === 'object' && err instanceof MulterError) {
         const response: ErrorResponse = {

@@ -1,10 +1,9 @@
-import '../../helpers/mockfs';
 import express from 'express';
 import request from 'supertest';
 import multer from 'multer';
 import path from 'path';
 import fg from 'fast-glob';
-import fs from 'fs';
+import { promises } from 'fs';
 import { configureApp } from '../../../src/server';
 import { environment } from '../../../src/lib/environment';
 import { checkBadRequest, checkUnsupportedMediaType, multerImplementation } from './helpers';
@@ -22,7 +21,7 @@ jest.mock('../../../src/services/upload');
 const mockedUploadService = UploadService as jest.MockedClass<typeof UploadService>;
 const mockedFBG = mockedUploadService.filenameByGuid as jest.MockedFunction<typeof mockedUploadService.filenameByGuid>;
 
-const mockedAccess = fs.promises.access as jest.MockedFunction<typeof fs.promises.access>;
+const mockedAccess = jest.spyOn(promises, 'access');
 
 let app: express.Express;
 const env = { ...process.env };
@@ -59,9 +58,7 @@ function checkNotFoundResponse(res: request.Response): void {
 }
 
 beforeEach(() => {
-    jest.clearAllMocks();
-    mockedAccess.mockReset();
-    mockedFg.mockReset();
+    jest.resetAllMocks();
     mockedMulter.mockImplementation(multerImplementation);
 
     return buildApp().then((application) => {

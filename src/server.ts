@@ -2,6 +2,7 @@ import express, { json } from 'express';
 import { join } from 'path';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
+import { cleanUploadedFilesMiddleware } from '@myrotvorets/clean-up-after-multer';
 import { createServer } from '@myrotvorets/create-server';
 import morgan from 'morgan';
 
@@ -9,7 +10,7 @@ import { environment } from './lib/environment';
 
 import uploadController from './controllers/upload';
 import monitoringController from './controllers/monitoring';
-import { cleanUploadedFilesMiddleware, uploadErrorHandlerMiddleware } from './middleware/upload';
+import { uploadErrorHandlerMiddleware } from './middleware/upload';
 
 export async function configureApp(app: express.Express): Promise<void> {
     const env = environment();
@@ -27,7 +28,7 @@ export async function configureApp(app: express.Express): Promise<void> {
 
     app.use('/', uploadController());
     app.use('/', notFoundMiddleware);
-    app.use(cleanUploadedFilesMiddleware);
+    app.use(cleanUploadedFilesMiddleware());
     app.use(uploadErrorHandlerMiddleware);
     app.use(errorMiddleware);
 }

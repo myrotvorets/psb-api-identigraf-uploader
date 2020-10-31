@@ -1,6 +1,5 @@
-import '../../helpers/mockfs';
 import express from 'express';
-import fs from 'fs';
+import { promises } from 'fs';
 import { statvfs } from '@wwa/statvfs';
 import type { Environment } from '../../../src/lib/environment';
 import monitoringController, { healthChecker } from '../../../src/controllers/monitoring';
@@ -16,9 +15,8 @@ import {
 } from './helpers';
 
 jest.mock('@wwa/statvfs');
-
 const mockedStatVFS = statvfs as jest.MockedFunction<typeof statvfs>;
-const mockedAccess = fs.promises.access as jest.MockedFunction<typeof fs.promises.access>;
+const mockedAccess = jest.spyOn(promises, 'access');
 
 const UPLOAD_PATH = '/fake';
 
