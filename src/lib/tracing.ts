@@ -12,7 +12,7 @@ const provider = new NodeTracerProvider({
     },
 });
 
-if (+(process.env.ENABLE_TRACING ?? 0) && process.env.ZIPKIN_ENDPOINT) {
+if (+(process.env.ENABLE_TRACING || 0) && process.env.ZIPKIN_ENDPOINT) {
     const zipkinExporter = new ZipkinExporter({
         url: process.env.ZIPKIN_ENDPOINT,
         serviceName: 'psb-api-identigraf-uploader',

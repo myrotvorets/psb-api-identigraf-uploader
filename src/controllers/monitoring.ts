@@ -10,7 +10,7 @@ import { Router } from 'express';
 import { constants, promises } from 'fs';
 import { addJsonContentTypeMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { statvfs } from '@wwa/statvfs';
-import { Environment } from '../lib/environment';
+import type { Environment } from '../lib/environment';
 
 export let healthChecker = new HealthChecker();
 
