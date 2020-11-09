@@ -32,7 +32,7 @@
     "@wwa/statvfs": "^1.0.3",
     "envalid": "^6.0.2",
     "express": "^4.17.1",
-    "express-openapi-validator": "^4.4.2",
+    "express-openapi-validator": "^4.5.0",
     "fast-glob": "^3.2.4",
     "morgan": "^1.10.0",
     "sharp": "^0.26.2"
