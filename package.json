@@ -20,7 +20,7 @@
     "@cloudnative/health-connect": "^2.1.0",
     "@myrotvorets/clean-up-after-multer": "^1.1.0",
     "@myrotvorets/create-server": "^1.0.2",
-    "@myrotvorets/express-async-middleware-wrapper": "^2.0.0",
+    "@myrotvorets/express-async-middleware-wrapper": "^2.0.1",
     "@myrotvorets/express-microservice-middlewares": "^1.4.1",
     "@myrotvorets/oav-installer": "^2.2.1",
     "@opentelemetry/exporter-zipkin": "^0.13.0",
