@@ -114,11 +114,11 @@ export default function (): Router {
     const env = environment();
     const router = Router();
 
-    router.post('/search/:guid', asyncWrapper((searchUploadHandler as unknown) as RequestHandler));
-    router.post('/compare/:guid', asyncWrapper((compareUploadHandler as unknown) as RequestHandler));
+    router.post('/search/:guid', asyncWrapper(searchUploadHandler));
+    router.post('/compare/:guid', asyncWrapper(compareUploadHandler));
     router.get('/get/:guid/:number', retrieveCompareHandler(env));
     router.get('/get/:guid', retrieveSearchHandler(env));
-    router.get('/count/:guid', asyncWrapper(countPhotosHandler(env) as RequestHandler));
+    router.get('/count/:guid', asyncWrapper(countPhotosHandler(env)));
 
     return router;
 }
