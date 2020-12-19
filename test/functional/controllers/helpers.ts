@@ -46,7 +46,7 @@ export const outOfSpaceStats: VFSStats = {
     ffree: 10000,
 };
 
-export const outOfIndoesStats: VFSStats = {
+export const outOfInodesStats: VFSStats = {
     type: 0,
     bfree: 10000,
     bavail: 10000,

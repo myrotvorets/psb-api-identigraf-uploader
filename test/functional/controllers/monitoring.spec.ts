@@ -7,7 +7,7 @@ import {
     checker200,
     checker503,
     goodStats,
-    outOfIndoesStats,
+    outOfInodesStats,
     outOfSpaceStats,
     sigtermResponse,
     spaceIssueResponse,
@@ -78,7 +78,7 @@ describe('MonitoringController', () => {
         });
 
         it('should fail when the system runs out of inodes', () => {
-            mockedStatVFS.mockResolvedValue(outOfIndoesStats);
+            mockedStatVFS.mockResolvedValue(outOfInodesStats);
             return checker503(app, 'ready', spaceIssueResponse).then(checkCallExpectations);
         });
 
