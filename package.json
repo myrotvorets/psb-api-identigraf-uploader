@@ -29,7 +29,7 @@
     "@opentelemetry/plugin-http": "^0.14.0",
     "@opentelemetry/plugin-https": "^0.14.0",
     "@opentelemetry/tracing": "^0.14.0",
-    "@wwa/statvfs": "^1.1.2",
+    "@wwa/statvfs": "^1.1.5",
     "envalid": "^6.0.2",
     "express": "^4.17.1",
     "express-openapi-validator": "^4.9.0",
