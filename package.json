@@ -23,19 +23,15 @@
     "@myrotvorets/express-async-middleware-wrapper": "^2.0.2",
     "@myrotvorets/express-microservice-middlewares": "^1.4.1",
     "@myrotvorets/oav-installer": "^2.2.1",
-    "@opentelemetry/exporter-zipkin": "^0.14.0",
-    "@opentelemetry/node": "^0.14.0",
-    "@opentelemetry/plugin-express": "^0.11.0",
-    "@opentelemetry/plugin-http": "^0.14.0",
-    "@opentelemetry/plugin-https": "^0.14.0",
-    "@opentelemetry/tracing": "^0.14.0",
+    "@myrotvorets/opentelemetry-configurator": "^1.0.2",
+    "@opentelemetry/plugin-express": "^0.12.0",
     "@wwa/statvfs": "^1.1.2",
     "envalid": "^6.0.2",
     "express": "^4.17.1",
     "express-openapi-validator": "^4.9.0",
     "fast-glob": "^3.2.4",
     "morgan": "^1.10.0",
-    "sharp": "^0.26.3"
+    "sharp": "^0.27.0"
   },
   "devDependencies": {
     "@myrotvorets/eslint-config-myrotvorets-ts": "^2.2.2",
