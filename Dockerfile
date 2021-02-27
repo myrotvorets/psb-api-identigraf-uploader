@@ -1,7 +1,7 @@
 FROM myrotvorets/node-build:latest AS base
 USER root
 WORKDIR /srv/service
-RUN chown nobody:nobody /srv/service
+RUN chown nobody:nobody /srv/service && apk add --no-cache vips-dev
 USER nobody:nobody
 COPY --chown=nobody:nobody ./package.json ./package-lock.json ./tsconfig.json .npmrc ./
 
