@@ -28,14 +28,12 @@ export default function (env: Environment): Router {
         (): Promise<void> => {
             return statvfs(env.IDENTIGRAF_UPLOAD_FOLDER).then((stats) => {
                 if (stats.blocks && stats.bavail * stats.bsize < 1048576) {
-                    return Promise.reject(new Error('Too few free disk space'));
+                    throw new Error('Too few free disk space');
                 }
 
                 if (stats.files && stats.ffree < 1000) {
-                    return Promise.reject(new Error('Too few free inodes'));
+                    throw new Error('Too few free inodes');
                 }
-
-                return Promise.resolve();
             });
         },
     );

@@ -57,7 +57,7 @@ function sendFile(fname: string, res: Response, next: NextFunction): void {
             }),
         )
         .catch(() =>
-            next({
+            setImmediate(next, {
                 success: false,
                 status: 404,
                 code: 'NOT_FOUND',
