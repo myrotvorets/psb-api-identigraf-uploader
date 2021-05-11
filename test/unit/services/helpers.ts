@@ -5,11 +5,11 @@ export const jpegMock = jest.fn();
 export const toFileMock = jest.fn().mockResolvedValue('');
 
 export const sharpImplementation = (): Sharp => {
-    return ({
+    return {
         metadata: metadataMock,
         jpeg: jpegMock,
         toFile: toFileMock,
-    } as unknown) as Sharp;
+    } as unknown as Sharp;
 };
 
 export const normalMetadata: Metadata = {

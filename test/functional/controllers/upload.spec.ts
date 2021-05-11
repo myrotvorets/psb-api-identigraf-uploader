@@ -304,9 +304,9 @@ describe('countHandler', () => {
         it('should behave correctly', () => {
             const filemask = 'blah';
             mockedFg.mockResolvedValueOnce([]);
-            (mockedUploadService.filenameByGuid as jest.MockedFunction<
-                typeof mockedUploadService.filenameByGuid
-            >).mockImplementationOnce(() => filemask);
+            (
+                mockedUploadService.filenameByGuid as jest.MockedFunction<typeof mockedUploadService.filenameByGuid>
+            ).mockImplementationOnce(() => filemask);
 
             const expected = {
                 success: true,
