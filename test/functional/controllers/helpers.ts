@@ -1,8 +1,8 @@
 import request, { Response } from 'supertest';
-import type { NoParamCallback, PathLike } from 'fs';
-import type { VFSStats } from '@wwa/statvfs';
 import multer, { Multer, Options } from 'multer';
 import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
+import type { NoParamCallback, PathLike } from 'fs';
+import type { VFSStats } from '@wwa/statvfs';
 
 export function accessCallbackSuccess(path: PathLike, mode: number | undefined, callback: NoParamCallback): void;
 export function accessCallbackSuccess(path: PathLike, callback: NoParamCallback): void;
