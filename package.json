@@ -25,7 +25,7 @@
     "@myrotvorets/oav-installer": "^2.2.1",
     "@myrotvorets/opentelemetry-configurator": "^2.0.1",
     "@wwa/statvfs": "^1.1.6",
-    "envalid": "^7.0.0",
+    "envalid": "^7.2.1",
     "express": "^4.17.1",
     "express-openapi-validator": "^4.10.11",
     "fast-glob": "^3.2.5",
