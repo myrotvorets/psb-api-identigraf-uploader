@@ -30,7 +30,7 @@
     "express-openapi-validator": "^4.10.11",
     "fast-glob": "^3.2.5",
     "morgan": "^1.10.0",
-    "sharp": "^0.29.0"
+    "sharp": "^0.30.0"
   },
   "devDependencies": {
     "@myrotvorets/eslint-config-myrotvorets-ts": "^2.2.5",
