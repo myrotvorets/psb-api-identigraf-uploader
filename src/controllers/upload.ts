@@ -91,6 +91,7 @@ interface CountPhotosResponse {
 }
 
 function countPhotosHandler(env: Environment): RequestHandler<UploadParams> {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     return async (req: Request<UploadParams>, res: Response<CountPhotosResponse>): Promise<void> => {
         const { guid } = req.params;
         const fname = path.resolve(
