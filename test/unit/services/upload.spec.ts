@@ -2,7 +2,15 @@ import { promises } from 'fs';
 import { sep } from 'path';
 import sharp from 'sharp';
 import { UploadService } from '../../../src/services/upload';
-import { jpegMock, metadataMock, metadataOtherJpeg, metadataPng, normalMetadata, sharpImplementation } from './helpers';
+import {
+    jpegMock,
+    metadataMock,
+    metadataOtherJpeg,
+    metadataPng,
+    normalMetadata,
+    rotateMock,
+    sharpImplementation,
+} from './helpers';
 
 jest.mock('sharp');
 
@@ -29,6 +37,7 @@ describe('UploadService', () => {
             expect(mockedMkDir).toHaveBeenCalledTimes(1);
             expect(mockedMkDir).toHaveBeenCalledWith(`${file.destination}${sep}${expectedPrefix}`, expect.any(Object));
             expect(metadataMock).toHaveBeenCalledTimes(1);
+            expect(rotateMock).toHaveBeenCalledTimes(1);
             expect(s).toBe(expectedRetVal);
         };
 

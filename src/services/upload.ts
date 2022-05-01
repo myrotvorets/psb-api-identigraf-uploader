@@ -33,6 +33,7 @@ export class UploadService {
         const sf = metadata.chromaSubsampling || '4:2:0';
         const isProgressive = !!metadata.isProgressive;
         const flag = !isJPEG || sf !== '4:2:0' || isProgressive;
+        img.rotate();
         if (flag) {
             img.jpeg({
                 progressive: false,
