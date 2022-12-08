@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { MulterError } from 'multer';
-import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
+import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import { cleanupFilesAfterMulter } from '@myrotvorets/clean-up-after-multer';
 
 const errorLookupTable: Record<string, string> = {
