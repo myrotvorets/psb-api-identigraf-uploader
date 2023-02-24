@@ -21,7 +21,7 @@ RUN \
 COPY --chown=nobody:nobody ./src ./src
 RUN npm run build -- --declaration false --removeComments true --sourceMap false
 
-FROM myrotvorets/node-min@sha256:320635de87aba0b52a08950fc9647c5c95c9b72817a64817921b741bf897afa0
+FROM myrotvorets/node-min@sha256:be92115aee2e256eb76b5f6a2b74bbec568b151cb03340a3869d4187b3a2e4aa
 USER root
 WORKDIR /srv/service
 RUN chown nobody:nobody /srv/service && apk add --no-cache vips
