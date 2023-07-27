@@ -24,7 +24,7 @@
     "@myrotvorets/express-microservice-middlewares": "^1.5.6",
     "@myrotvorets/oav-installer": "^3.0.0",
     "@myrotvorets/opentelemetry-configurator": "^2.0.1",
-    "@opentelemetry/instrumentation-express": "^0.32.0",
+    "@opentelemetry/instrumentation-express": "^0.33.0",
     "@wwa/statvfs": "^1.1.13",
     "envalid": "^7.0.0",
     "express": "^4.17.1",
