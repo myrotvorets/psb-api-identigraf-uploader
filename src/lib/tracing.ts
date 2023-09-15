@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { OpenTelemetryConfigurator } from '@myrotvorets/opentelemetry-configurator';
 
 if (+(process.env.ENABLE_TRACING || 0)) {
@@ -8,6 +8,6 @@ if (+(process.env.ENABLE_TRACING || 0)) {
         serviceName: 'psb-api-identigraf-uploader',
     });
 
-    configurator.start().catch((e) => console.error('Failed to initialize OpenTelemetry:', e));
+    configurator.start();
     EventEmitter.defaultMaxListeners += 5;
 }
