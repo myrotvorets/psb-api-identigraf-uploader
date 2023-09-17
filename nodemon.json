@@ -1,5 +1,5 @@
 {
   "watch": ["src"],
-  "ext": "ts",
-  "exec": "rm -rf dist && ts-node-script --transpile-only ./src/index.ts"
+  "ext": "mts",
+  "exec": "rm -rf dist && ts-node-script --transpile-only ./src/index.mts"
 }

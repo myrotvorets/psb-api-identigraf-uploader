@@ -1,3 +1,4 @@
+import { access, constants } from 'node:fs/promises';
 import {
     HealthChecker,
     HealthEndpoint,
@@ -7,20 +8,18 @@ import {
     ShutdownCheck,
 } from '@cloudnative/health-connect';
 import { Router } from 'express';
-import { constants, promises } from 'fs';
 import { addJsonContentTypeMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { statvfs } from '@wwa/statvfs';
-import type { Environment } from '../lib/environment';
+import type { Environment } from '../lib/environment.mjs';
 
-export let healthChecker = new HealthChecker();
+export const healthChecker = new HealthChecker();
 
-export default function (env: Environment): Router {
+export function monitoringController(env: Environment): Router {
     const router = Router();
 
     const dirCheck = new ReadinessCheck(
         'upload folder',
-        (): Promise<void> =>
-            promises.access(env.IDENTIGRAF_UPLOAD_FOLDER, constants.F_OK | constants.R_OK | constants.W_OK),
+        (): Promise<void> => access(env.IDENTIGRAF_UPLOAD_FOLDER, constants.F_OK | constants.R_OK | constants.W_OK),
     );
 
     const diskSpaceCheck = new ReadinessCheck('free disk space', (): Promise<void> => {
@@ -37,7 +36,6 @@ export default function (env: Environment): Router {
 
     const shutdownCheck = new ShutdownCheck('SIGTERM', (): Promise<void> => Promise.resolve());
 
-    healthChecker = new HealthChecker();
     healthChecker.registerReadinessCheck(dirCheck);
     healthChecker.registerReadinessCheck(diskSpaceCheck);
     healthChecker.registerShutdownCheck(shutdownCheck);

@@ -1,11 +1,11 @@
-import path from 'path';
-import { constants, promises } from 'fs';
-import { NextFunction, Request, RequestHandler, Response, Router } from 'express';
-import asyncWrapper from '@myrotvorets/express-async-middleware-wrapper';
+import { join, resolve } from 'node:path';
+import { access, constants } from 'node:fs/promises';
+import { type NextFunction, type Request, type RequestHandler, type Response, Router } from 'express';
+import { asyncWrapperMiddleware } from '@myrotvorets/express-async-middleware-wrapper';
 import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
-import fg from 'fast-glob';
-import { Environment, environment } from '../lib/environment';
-import { UploadService } from '../services/upload';
+import { glob } from 'fast-glob';
+import { Environment, environment } from '../lib/environment.mjs';
+import { UploadService } from '../services/upload.mjs';
 
 interface UploadParams extends Record<string, string> {
     guid: string;
@@ -49,8 +49,7 @@ async function compareUploadHandler(
 }
 
 function sendFile(fname: string, res: Response, next: NextFunction): void {
-    promises
-        .access(fname, constants.R_OK)
+    access(fname, constants.R_OK)
         .then(() =>
             res.sendFile(fname, {
                 maxAge: 31556952,
@@ -69,7 +68,7 @@ function sendFile(fname: string, res: Response, next: NextFunction): void {
 function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams> {
     return (req: Request<UploadParams>, res: Response, next: NextFunction): void => {
         const { guid } = req.params;
-        const fname = path.resolve(path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid)));
+        const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid)));
         sendFile(fname, res, next);
     };
 }
@@ -77,9 +76,7 @@ function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams> {
 function retrieveCompareHandler(env: Environment): RequestHandler<UploadParams> {
     return (req: Request<UploadParams>, res: Response, next: NextFunction): void => {
         const { guid, number } = req.params;
-        const fname = path.resolve(
-            path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(`${guid}-${number}`)),
-        );
+        const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(`${guid}-${number}`)));
 
         sendFile(fname, res, next);
     };
@@ -94,11 +91,9 @@ function countPhotosHandler(env: Environment): RequestHandler<UploadParams> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     return async (req: Request<UploadParams>, res: Response<CountPhotosResponse>): Promise<void> => {
         const { guid } = req.params;
-        const fname = path.resolve(
-            path.join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid, '-*.jpg')),
-        );
+        const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid, '-*.jpg')));
 
-        const entries = await fg(fname, {
+        const entries = await glob(fname, {
             braceExpansion: false,
             onlyFiles: true,
             suppressErrors: true,
@@ -111,15 +106,15 @@ function countPhotosHandler(env: Environment): RequestHandler<UploadParams> {
     };
 }
 
-export default function (): Router {
+export function uploadController(): Router {
     const env = environment();
     const router = Router();
 
-    router.post('/search/:guid', asyncWrapper(searchUploadHandler));
-    router.post('/compare/:guid', asyncWrapper(compareUploadHandler));
+    router.post('/search/:guid', asyncWrapperMiddleware(searchUploadHandler));
+    router.post('/compare/:guid', asyncWrapperMiddleware(compareUploadHandler));
     router.get('/get/:guid/:number', retrieveCompareHandler(env));
     router.get('/get/:guid', retrieveSearchHandler(env));
-    router.get('/count/:guid', asyncWrapper(countPhotosHandler(env)));
+    router.get('/count/:guid', asyncWrapperMiddleware(countPhotosHandler(env)));
 
     return router;
 }
