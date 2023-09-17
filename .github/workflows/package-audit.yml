@@ -3,6 +3,7 @@ name: Package Audit
 on:
   push:
     branches:
+      - '**'
     paths:
       - package.json
       - package-lock.json
@@ -26,4 +27,4 @@ jobs:
           node-version: lts/*
 
       - name: Run audit
-        run: npm audit --production
+        run: npm audit --omit=dev
