@@ -3,9 +3,11 @@ import { access, constants } from 'node:fs/promises';
 import { type NextFunction, type Request, type RequestHandler, type Response, Router } from 'express';
 import { asyncWrapperMiddleware } from '@myrotvorets/express-async-middleware-wrapper';
 import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
-import { glob } from 'fast-glob';
+import * as fastglob from 'fast-glob';
 import { Environment, environment } from '../lib/environment.mjs';
 import { UploadService } from '../services/upload.mjs';
+
+const { glob } = fastglob;
 
 interface UploadParams extends Record<string, string> {
     guid: string;
