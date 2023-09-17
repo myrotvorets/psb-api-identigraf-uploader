@@ -1,6 +1,6 @@
 {
   "name": "psbapi-microservice-identigraf-uploader",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "private": true,
   "description": "IDentigraF uploader microservice",
   "type": "module",
