@@ -1,30 +1,38 @@
-import express, { json } from 'express';
-import { join } from 'path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import express, { type Express, json } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { cleanUploadedFilesMiddleware } from '@myrotvorets/clean-up-after-multer';
 import { createServer } from '@myrotvorets/create-server';
 import morgan from 'morgan';
+import { diskStorage, memoryStorage } from 'multer';
 
-import { environment } from './lib/environment';
+import { environment } from './lib/environment.mjs';
 
-import uploadController from './controllers/upload';
-import monitoringController from './controllers/monitoring';
-import { uploadErrorHandlerMiddleware } from './middleware/upload';
+import { uploadController } from './controllers/upload.mjs';
+import { monitoringController } from './controllers/monitoring.mjs';
+import { uploadErrorHandlerMiddleware } from './middleware/upload.mjs';
 
 export async function configureApp(app: express.Express): Promise<void> {
     const env = environment();
 
     app.use(json());
 
-    await installOpenApiValidator(join(__dirname, 'specs', 'identigraf-uploader.yaml'), app, env.NODE_ENV, {
-        fileUploader: {
-            dest: env.IDENTIGRAF_UPLOAD_FOLDER,
-            limits: {
-                fileSize: env.IDENTIGRAF_MAX_FILE_SIZE,
+    await installOpenApiValidator(
+        join(dirname(fileURLToPath(import.meta.url)), 'specs', 'identigraf-uploader.yaml'),
+        app,
+        env.NODE_ENV,
+        {
+            fileUploader: {
+                storage: env.NODE_ENV === 'test' ? memoryStorage() : /* c8 ignore next */ diskStorage({}),
+                dest: env.IDENTIGRAF_UPLOAD_FOLDER,
+                limits: {
+                    fileSize: env.IDENTIGRAF_MAX_FILE_SIZE,
+                },
             },
         },
-    });
+    );
 
     app.use(
         uploadController(),
@@ -35,8 +43,8 @@ export async function configureApp(app: express.Express): Promise<void> {
     );
 }
 
-/* istanbul ignore next */
-export function setupApp(): express.Express {
+/* c8 ignore start */
+export function setupApp(): Express {
     const app = express();
     app.set('strict routing', true);
     app.set('x-powered-by', false);
@@ -50,7 +58,6 @@ export function setupApp(): express.Express {
     return app;
 }
 
-/* istanbul ignore next */
 export async function run(): Promise<void> {
     const [env, app] = [environment(), setupApp()];
 
@@ -61,3 +68,4 @@ export async function run(): Promise<void> {
     const server = await createServer(app);
     server.listen(env.PORT);
 }
+/* c8 ignore end */

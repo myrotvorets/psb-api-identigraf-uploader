@@ -1,4 +1,6 @@
-import { Environment, environment } from '../../../src/lib/environment';
+import { afterEach, describe, it } from 'mocha';
+import { expect } from 'chai';
+import { type Environment, environment } from '../../../src/lib/environment.mjs';
 
 describe('environment', () => {
     const env = { ...process.env };
@@ -21,8 +23,8 @@ describe('environment', () => {
             IDENTIGRAF_MAX_FILE_SIZE: `${expected.IDENTIGRAF_MAX_FILE_SIZE}`,
         };
 
-        const actual = { ...environment() };
-        expect(actual).toStrictEqual(expected);
+        const actual = { ...environment(true) };
+        expect(actual).to.deep.equal(expected);
     });
 
     it('should cache the result', () => {
@@ -41,7 +43,7 @@ describe('environment', () => {
         };
 
         let actual = { ...environment(true) };
-        expect(actual).toStrictEqual(expected);
+        expect(actual).to.deep.equal(expected);
 
         process.env = {
             NODE_ENV: `${expected.NODE_ENV}${expected.NODE_ENV}`,
@@ -51,6 +53,6 @@ describe('environment', () => {
         };
 
         actual = { ...environment() };
-        expect(actual).toStrictEqual(expected);
+        expect(actual).to.deep.equal(expected);
     });
 });

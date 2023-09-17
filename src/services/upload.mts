@@ -1,19 +1,19 @@
-import { promises } from 'fs';
-import { join, sep } from 'path';
+import { mkdir } from 'node:fs/promises';
+import { join, sep } from 'node:path';
 import sharp from 'sharp';
 
 export class UploadService {
     public static async uploadFile(
-        file: Pick<Express.Multer.File, 'path' | 'destination'>,
+        file: Pick<Express.Multer.File, 'path' | 'destination' | 'buffer'>,
         guid: string,
     ): Promise<string> {
-        const img = await UploadService.prepareFile(file.path);
+        const img = await UploadService.prepareFile(file.path ?? file.buffer); // memoryStorage() returns Buffer
         const hashedPath = UploadService.hashFileName(guid);
         const filename = `${guid}.jpg`;
-        const destPath = join(file.destination, hashedPath);
+        const destPath = join(file.destination ?? '', hashedPath); // No file.destination for memoryStorage()
         const destJpeg = join(destPath, filename);
 
-        await promises.mkdir(destPath, { recursive: true, mode: 0o755 });
+        await mkdir(destPath, { recursive: true, mode: 0o755 });
         await img.toFile(destJpeg);
 
         return join(hashedPath, filename);
@@ -25,7 +25,7 @@ export class UploadService {
         return join(hashedPath, filename);
     }
 
-    private static async prepareFile(path: string): Promise<sharp.Sharp> {
+    private static async prepareFile(path: string | Buffer): Promise<sharp.Sharp> {
         const img = sharp(path, { failOnError: false, sequentialRead: true });
 
         const metadata = await img.metadata();

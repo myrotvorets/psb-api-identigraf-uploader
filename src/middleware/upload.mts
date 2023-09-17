@@ -21,7 +21,7 @@ export function uploadErrorHandlerMiddleware(err: unknown, req: Request, _res: R
                 const response: ErrorResponse = {
                     success: false,
                     status: 400,
-                    code: errorLookupTable[err.code] || 'BAD_REQUEST',
+                    code: errorLookupTable[err.code] ?? 'BAD_REQUEST',
                     message: err.message,
                 };
 
