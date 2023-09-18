@@ -54,9 +54,7 @@ describe('Upload', () => {
             mkdir: mkDirMock,
         });
 
-        await td.replaceEsm('fast-glob', {
-            glob: globMock,
-        });
+        await td.replaceEsm('fast-glob', null, globMock);
 
         upload = await import('../../../src/services/upload.mjs');
         const { configureApp } = await import('../../../src/server.mjs');
@@ -74,7 +72,7 @@ describe('Upload', () => {
 
         app = express();
         app.disable('x-powered-by');
-        await configureApp(app);
+        return configureApp(app);
     });
 
     afterEach(() => (process.env = { ...env }));

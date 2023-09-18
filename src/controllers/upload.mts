@@ -7,7 +7,7 @@ import * as fastglob from 'fast-glob';
 import { Environment, environment } from '../lib/environment.mjs';
 import { UploadService } from '../services/upload.mjs';
 
-const { glob } = fastglob;
+const glob = fastglob.default;
 
 interface UploadParams extends Record<string, string> {
     guid: string;
