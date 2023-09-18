@@ -6,7 +6,7 @@ import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-micros
 import { cleanUploadedFilesMiddleware } from '@myrotvorets/clean-up-after-multer';
 import { createServer } from '@myrotvorets/create-server';
 import morgan from 'morgan';
-import { diskStorage, memoryStorage } from 'multer';
+import { memoryStorage } from 'multer';
 
 import { environment } from './lib/environment.mjs';
 
@@ -25,7 +25,7 @@ export async function configureApp(app: express.Express): Promise<void> {
         env.NODE_ENV,
         {
             fileUploader: {
-                storage: env.NODE_ENV === 'test' ? memoryStorage() : /* c8 ignore next */ diskStorage({}),
+                storage: env.NODE_ENV === 'test' ? memoryStorage() : /* c8 ignore next */ undefined,
                 dest: env.IDENTIGRAF_UPLOAD_FOLDER,
                 limits: {
                     fileSize: env.IDENTIGRAF_MAX_FILE_SIZE,
