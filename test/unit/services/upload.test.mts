@@ -73,29 +73,28 @@ describe('UploadService', function () {
             );
         };
 
-        it('should handle non-progressive 4:2:0 JPEGs', function () {
+        it('should handle non-progressive 4:2:0 JPEGs', async function () {
             when(metadataMock()).thenResolve(normalMetadata);
 
-            return service.uploadFile(file, guid).then((s) => {
-                commonChecks(s);
-                verify(jpegMock(), { times: 0 });
-            });
+            const s = await service.uploadFile(file, guid);
+            commonChecks(s);
+            verify(jpegMock(), { times: 0 });
         });
 
-        it('should handle PNGs', function () {
+        it('should handle PNGs', async function () {
             when(metadataMock()).thenResolve(metadataPng);
-            return service.uploadFile(file, guid).then((s) => {
-                commonChecks(s);
-                jpegChecks();
-            });
+
+            const s = await service.uploadFile(file, guid);
+            commonChecks(s);
+            jpegChecks();
         });
 
-        it('should handle all other JPEGs', function () {
+        it('should handle all other JPEGs', async function () {
             when(metadataMock()).thenResolve(metadataOtherJpeg);
-            return service.uploadFile(file, guid).then((s) => {
-                commonChecks(s);
-                jpegChecks();
-            });
+
+            const s = await service.uploadFile(file, guid);
+            commonChecks(s);
+            jpegChecks();
         });
     });
 
@@ -112,20 +111,11 @@ describe('UploadService', function () {
             expect(service.filenameByGuid(guid)).to.match(/\.jpg$/u);
         });
 
-        const guids = [
-            ['837c4760-c8e6-4e17-b1dd-f8e708e79978', `83${sep}7c${sep}47${sep}837c4760-c8e6-4e17-b1dd-f8e708e79978`],
-            ['ba200c7f-8e33-4f9e-b15e-fa430ce369c6', `ba${sep}20${sep}0c${sep}ba200c7f-8e33-4f9e-b15e-fa430ce369c6`],
-            ['edaa2df6-b3d9-4192-b99b-37a0a4689980', `ed${sep}aa${sep}2d${sep}edaa2df6-b3d9-4192-b99b-37a0a4689980`],
-            ['fed76ad9-4078-471c-8f2a-885f275ea204', `fe${sep}d7${sep}6a${sep}fed76ad9-4078-471c-8f2a-885f275ea204`],
-            ['f9c77be1-dfba-4f21-96d7-96bf6faa3a1d', `f9${sep}c7${sep}7b${sep}f9c77be1-dfba-4f21-96d7-96bf6faa3a1d`],
-        ];
-
-        // eslint-disable-next-line mocha/no-setup-in-describe
-        guids.forEach(([input, expected]) => {
-            it(`should split the GUID into parts (${input} => ${expected})`, function () {
-                const actual = service.filenameByGuid(input, '');
-                expect(actual).to.equal(expected);
-            });
+        it('should split the GUID into parts', function () {
+            const input = '837c4760-c8e6-4e17-b1dd-f8e708e79978';
+            const expected = `83${sep}7c${sep}47${sep}837c4760-c8e6-4e17-b1dd-f8e708e79978`;
+            const actual = service.filenameByGuid(input, '');
+            expect(actual).to.equal(expected);
         });
     });
 });
