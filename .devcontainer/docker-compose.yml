@@ -1,0 +1,36 @@
+services:
+  identigraf-uploader:
+    build:
+      context: .docker/identigraf-uploader
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - NO_UPDATE_NOTIFIER=true
+      - NPM_CONFIG_FUND=0
+      - SUPPRESS_SUPPORT=1
+      - HTTPS=0
+      - PORT=3000
+      - ENABLE_TRACING=1
+      - OTEL_EXPORTER_ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - IDENTIGRAF_UPLOAD_FOLDER=/var/lib/identigraf-uploader/uploads
+      - IDENTIGRAF_MAX_FILE_SIZE=5242880
+      - HAVE_SWAGGER=true
+      - npm_config_userconfig=/usr/src/service/.npmrc.local
+    restart: always
+    volumes:
+      - "../:/usr/src/service"
+      - uploads:/var/lib/identigraf-uploader/uploads
+    working_dir: /usr/src/service
+
+  zipkin:
+    image: openzipkin/zipkin:latest@sha256:5fd55e6a109233b36d419d7fd2449588d17a6e4da7ed7a3fd0d09c86f1c75a15
+    restart: always
+
+  swagger:
+    image: swaggerapi/swagger-ui:latest@sha256:3b4f51470fed56b1ce5a064f57ce7a0d585f50192731f458e7b376713b286d57
+    environment:
+      - SWAGGER_JSON_URL=/specs/identigraf-uploader.yaml
+      - BASE_URL=/swagger
+
+volumes:
+  uploads:

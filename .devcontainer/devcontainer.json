@@ -1,0 +1,54 @@
+{
+    "name": "IDentigraF Uploader",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "identigraf-uploader",
+    "workspaceFolder": "/usr/src/service",
+    "forwardPorts": [80, 9411],
+    "portsAttributes": {
+        "80": {
+            "label": "Application (Frontend)",
+            "onAutoForward": "notify"
+        },
+        "3000": {
+            "label": "Application (Backend)",
+            "onAutoForward": "ignore"
+        },
+        "9411": {
+            "label": "Zipkin",
+            "onAutoForward": "notify"
+        }
+    },
+    "remoteUser": "vscode",
+    "postCreateCommand": "/usr/local/bin/post-create.sh",
+    "secrets": {
+        "READ_PACKAGES_TOKEN": {
+            "description": "Personal access token to install packages from ghcr.io"
+        }
+    },
+    "customizations": {
+        "codespaces": {
+            "repositories": {
+                "myrotvorets/psb-api-identigraf-uploader": {
+                    "permissions": {
+                        "packages": "read"
+                    }
+                }
+            }
+        },
+        "vscode": {
+            "extensions": [
+                "dlech.chmod",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "timonwong.shellcheck",
+                "ms-azuretools.vscode-docker",
+                "zhiayang.tabindentspacealign",
+                "42Crunch.vscode-openapi",
+                "natqe.reload"
+            ],
+            "settings": {
+                "files.autoSave": "onWindowChange"
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express, { type Express, json } from 'express';
+import express, { type Express, json, static as staticMiddleware } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { cleanUploadedFilesMiddleware } from '@myrotvorets/clean-up-after-multer';
@@ -16,6 +16,22 @@ import { uploadErrorHandlerMiddleware } from './middleware/upload.mjs';
 
 export async function configureApp(app: express.Express): Promise<void> {
     const env = environment();
+
+    /* c8 ignore start */
+    if (env.NODE_ENV !== 'production') {
+        app.use(
+            '/specs/',
+            staticMiddleware(join(dirname(fileURLToPath(import.meta.url)), 'specs'), {
+                acceptRanges: false,
+                index: false,
+            }),
+        );
+
+        if (process.env.HAVE_SWAGGER === 'true') {
+            app.get('/', (_req, res) => res.redirect('/swagger/'));
+        }
+    }
+    /* c8 ignore end */
 
     app.use(json());
 

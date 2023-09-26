@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+exec 2>&1
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+SERVICE=identigraf-uploader
+
+install -d -o vscode -g vscode -m 0755 "/var/log/${SERVICE}"
+exec sudo -u vscode -H /usr/local/bin/start-service.sh > "/var/log/${SERVICE}/start.log" 2>&1
