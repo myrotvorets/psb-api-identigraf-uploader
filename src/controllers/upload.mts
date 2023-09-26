@@ -9,8 +9,12 @@ import { UploadService } from '../services/upload.mjs';
 
 const glob = fastglob.default;
 
-interface UploadParams extends Record<string, string> {
+interface UploadParams {
     guid: string;
+}
+
+interface UploadCompareParams extends UploadParams {
+    number: number;
 }
 
 interface UploadResponse {
@@ -18,7 +22,7 @@ interface UploadResponse {
 }
 
 async function searchUploadHandler(
-    req: Request<UploadParams>,
+    req: Request<UploadParams, UploadResponse, never, never>,
     res: Response<UploadResponse>,
     next: NextFunction,
 ): Promise<void> {
@@ -34,7 +38,7 @@ async function searchUploadHandler(
 }
 
 async function compareUploadHandler(
-    req: Request<UploadParams>,
+    req: Request<UploadParams, UploadResponse, never, never>,
     res: Response<UploadResponse>,
     next: NextFunction,
 ): Promise<void> {
@@ -50,38 +54,47 @@ async function compareUploadHandler(
     next();
 }
 
-function sendFile(fname: string, res: Response, next: NextFunction): void {
-    access(fname, constants.R_OK)
-        .then(() =>
-            res.sendFile(fname, {
-                maxAge: 31556952,
-            }),
-        )
-        .catch(() =>
-            setImmediate<ErrorResponse[]>(next, {
-                success: false,
-                status: 404,
-                code: 'NOT_FOUND',
-                message: 'File not found',
-            } as ErrorResponse),
-        );
+async function sendFile(fname: string, res: Response<never>, next: NextFunction): Promise<void> {
+    try {
+        await access(fname, constants.R_OK);
+        res.sendFile(fname, {
+            maxAge: 31556952,
+        });
+    } catch {
+        next({
+            success: false,
+            status: 404,
+            code: 'NOT_FOUND',
+            message: 'File not found',
+        } as ErrorResponse);
+    }
 }
 
-function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams> {
-    return (req: Request<UploadParams>, res: Response, next: NextFunction): void => {
-        const { guid } = req.params;
-        const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid)));
-        sendFile(fname, res, next);
-    };
+function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams, never, never, never> {
+    return asyncWrapperMiddleware(
+        (req: Request<UploadParams, never, never, never>, res: Response<never>, next: NextFunction): Promise<void> => {
+            const { guid } = req.params;
+            const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid)));
+            return sendFile(fname, res, next);
+        },
+    );
 }
 
-function retrieveCompareHandler(env: Environment): RequestHandler<UploadParams> {
-    return (req: Request<UploadParams>, res: Response, next: NextFunction): void => {
-        const { guid, number } = req.params;
-        const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(`${guid}-${number}`)));
+function retrieveCompareHandler(env: Environment): RequestHandler<UploadCompareParams, never, never, never> {
+    return asyncWrapperMiddleware(
+        (
+            req: Request<UploadCompareParams, never, never, never>,
+            res: Response<never>,
+            next: NextFunction,
+        ): Promise<void> => {
+            const { guid, number } = req.params;
+            const fname = resolve(
+                join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(`${guid}-${number}`)),
+            );
 
-        sendFile(fname, res, next);
-    };
+            return sendFile(fname, res, next);
+        },
+    );
 }
 
 interface CountPhotosResponse {
@@ -89,23 +102,27 @@ interface CountPhotosResponse {
     files: number;
 }
 
-function countPhotosHandler(env: Environment): RequestHandler<UploadParams> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    return async (req: Request<UploadParams>, res: Response<CountPhotosResponse>): Promise<void> => {
-        const { guid } = req.params;
-        const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid, '-*.jpg')));
+function countPhotosHandler(env: Environment): RequestHandler<UploadParams, CountPhotosResponse, never, never> {
+    return asyncWrapperMiddleware(
+        async (
+            req: Request<UploadParams, CountPhotosResponse, never, never>,
+            res: Response<CountPhotosResponse>,
+        ): Promise<void> => {
+            const { guid } = req.params;
+            const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid, '-*.jpg')));
 
-        const entries = await glob(fname, {
-            braceExpansion: false,
-            onlyFiles: true,
-            suppressErrors: true,
-        });
+            const entries = await glob(fname, {
+                braceExpansion: false,
+                onlyFiles: true,
+                suppressErrors: true,
+            });
 
-        res.json({
-            success: true,
-            files: entries.length,
-        });
-    };
+            res.json({
+                success: true,
+                files: entries.length,
+            });
+        },
+    );
 }
 
 export function uploadController(): Router {
@@ -116,7 +133,7 @@ export function uploadController(): Router {
     router.post('/compare/:guid', asyncWrapperMiddleware(compareUploadHandler));
     router.get('/get/:guid/:number', retrieveCompareHandler(env));
     router.get('/get/:guid', retrieveSearchHandler(env));
-    router.get('/count/:guid', asyncWrapperMiddleware(countPhotosHandler(env)));
+    router.get('/count/:guid', countPhotosHandler(env));
 
     return router;
 }
