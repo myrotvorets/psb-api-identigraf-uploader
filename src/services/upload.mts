@@ -20,6 +20,10 @@ export class UploadService {
     }
 
     public static filenameByGuid(guid: string, ext = '.jpg'): string {
+        if (!/^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/u.test(guid)) {
+            throw new TypeError(`GUID is not valid: ${guid}`);
+        }
+
         const hashedPath = UploadService.hashFileName(guid);
         const filename = `${guid}${ext}`;
         return join(hashedPath, filename);

@@ -117,5 +117,9 @@ describe('UploadService', function () {
             const actual = service.filenameByGuid(input, '');
             expect(actual).to.equal(expected);
         });
+
+        it('should reject invalid input', function () {
+            expect(() => service.filenameByGuid('guid', '')).to.throw(TypeError);
+        });
     });
 });
