@@ -1,4 +1,3 @@
-import { afterEach, beforeEach, describe, it } from 'mocha';
 import { expect } from 'chai';
 import express, { type Express, type NextFunction } from 'express';
 import request from 'supertest';
@@ -7,11 +6,15 @@ import { type ErrorCode, MulterError } from 'multer';
 import { uploadErrorHandlerMiddleware } from '../../../src/middleware/upload.mjs';
 import { environment } from '../../../src/lib/environment.mjs';
 
-describe('uploadErrorHandlerMiddleware', () => {
-    const env = { ...process.env };
+describe('uploadErrorHandlerMiddleware', function () {
+    let env: typeof process.env;
     let app: Express;
 
-    beforeEach(() => {
+    before(function () {
+        env = { ...process.env };
+    });
+
+    beforeEach(function () {
         process.env = {
             NODE_ENV: 'test',
             PORT: '3030',
@@ -25,11 +28,11 @@ describe('uploadErrorHandlerMiddleware', () => {
         app.disable('x-powered-by');
     });
 
-    afterEach(() => {
+    afterEach(function () {
         process.env = { ...env };
     });
 
-    it('should not modify non-multer errors', () => {
+    it('should not modify non-multer errors', function () {
         app.use('/', (_req, _res, next: NextFunction) => next(new Error()));
         app.use(uploadErrorHandlerMiddleware);
         app.use(errorMiddleware);
@@ -40,7 +43,7 @@ describe('uploadErrorHandlerMiddleware', () => {
             .expect((res) => expect(res.body).to.be.an('object').and.include({ code: 'UNKNOWN_ERROR' }));
     });
 
-    const table: [ErrorCode, string][] = [
+    const table = [
         ['LIMIT_PART_COUNT', 'UPLOAD_LIMIT_PART_COUNT'],
         ['LIMIT_FILE_SIZE', 'UPLOAD_LIMIT_FILE_SIZE'],
         ['LIMIT_FILE_COUNT', 'UPLOAD_LIMIT_FILE_COUNT'],
@@ -49,10 +52,11 @@ describe('uploadErrorHandlerMiddleware', () => {
         ['LIMIT_FIELD_COUNT', 'UPLOAD_LIMIT_FIELD_COUNT'],
         ['LIMIT_UNEXPECTED_FILE', 'UPLOAD_LIMIT_UNEXPECTED_FILE'],
         ['OTHER_ERROR' as ErrorCode, 'BAD_REQUEST'],
-    ];
+    ] as const;
 
+    // eslint-disable-next-line mocha/no-setup-in-describe
     table.forEach(([error, expectedCode]) => {
-        it(`should properly handle Multer errors (${error} => ${expectedCode})`, () => {
+        it(`should properly handle Multer errors (${error} => ${expectedCode})`, function () {
             app.use('/', (_req, _res, next: NextFunction) => next(new MulterError(error)));
             app.use(uploadErrorHandlerMiddleware);
             app.use(errorMiddleware);

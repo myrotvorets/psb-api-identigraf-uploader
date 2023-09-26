@@ -1,7 +1,6 @@
 import type { access } from 'node:fs/promises';
-import { afterEach, beforeEach, describe } from 'mocha';
 import { expect } from 'chai';
-import * as td from 'testdouble';
+import { type TestDouble, func, matchers, replaceEsm, verify, when } from 'testdouble';
 import express, { type Express } from 'express';
 import request, { type Test } from 'supertest';
 import type { statvfs } from '@wwa/statvfs';
@@ -28,14 +27,19 @@ const checker503 = (app: unknown, endpoint: string, match: Record<string, unknow
         .expect(503)
         .expect((res) => expect(res.body).to.be.an('object').and.containSubset(match));
 
-describe('MonitoringController', () => {
+describe('MonitoringController', function () {
     let app: Express;
     let monitoring: typeof monitor;
-    const mockedAccess = td.function<typeof access>();
-    const mockedStatVFS = td.function<typeof statvfs>();
+    let mockedAccess: TestDouble<typeof access>;
+    let mockedStatVFS: TestDouble<typeof statvfs>;
 
-    beforeEach(async () => {
-        await td.replaceEsm('node:fs/promises', {
+    before(function () {
+        mockedAccess = func<typeof access>();
+        mockedStatVFS = func<typeof statvfs>();
+    });
+
+    beforeEach(async function () {
+        await replaceEsm('node:fs/promises', {
             access: mockedAccess,
             constants: {
                 F_OK: 0,
@@ -44,14 +48,14 @@ describe('MonitoringController', () => {
             },
         });
 
-        await td.replaceEsm('@wwa/statvfs', {
+        await replaceEsm('@wwa/statvfs', {
             statvfs: mockedStatVFS,
         });
 
         monitoring = await import('../../../src/controllers/monitoring.mjs');
 
-        td.when(mockedAccess(UPLOAD_PATH, td.matchers.isA(Number) as number)).thenResolve();
-        td.when(mockedStatVFS(UPLOAD_PATH)).thenResolve(goodStats);
+        when(mockedAccess(UPLOAD_PATH, matchers.isA(Number) as number)).thenResolve();
+        when(mockedStatVFS(UPLOAD_PATH)).thenResolve(goodStats);
 
         const fakeEnv: Environment = {
             NODE_ENV: 'staging',
@@ -65,51 +69,62 @@ describe('MonitoringController', () => {
         app.use('/monitoring', monitoring.monitoringController(fakeEnv));
     });
 
-    afterEach(() => process.removeAllListeners('SIGTERM'));
+    afterEach(function () {
+        return process.removeAllListeners('SIGTERM');
+    });
 
     const checkCallExpectations = (): void => {
-        td.verify(mockedAccess(UPLOAD_PATH, td.matchers.isA(Number) as number), { times: 1 });
+        verify(mockedAccess(UPLOAD_PATH, matchers.isA(Number) as number), { times: 1 });
     };
 
-    describe('Liveness Check', () => {
-        it('should succeed', () => checker200(app, 'live'));
-        it('should fail when shutdown requested', () => {
+    describe('Liveness Check', function () {
+        it('should succeed', function () {
+            return checker200(app, 'live');
+        });
+
+        it('should fail when shutdown requested', function () {
             monitoring.healthChecker.shutdownRequested = true;
             return checker503(app, 'live', sigtermResponse);
         });
     });
 
-    describe('Readiness Check', () => {
-        it('should succeed', () => checker200(app, 'ready'));
-        it('should fail when shutdown requested', () => {
+    describe('Readiness Check', function () {
+        it('should succeed', function () {
+            return checker200(app, 'ready');
+        });
+
+        it('should fail when shutdown requested', function () {
             monitoring.healthChecker.shutdownRequested = true;
             return checker503(app, 'ready', sigtermResponse);
         });
 
-        it('should fail when the system runs out of disk space', () => {
-            td.when(mockedStatVFS(UPLOAD_PATH)).thenResolve(outOfSpaceStats);
+        it('should fail when the system runs out of disk space', function () {
+            when(mockedStatVFS(UPLOAD_PATH)).thenResolve(outOfSpaceStats);
             return checker503(app, 'ready', spaceIssueResponse).then(checkCallExpectations);
         });
 
-        it('should fail when the system runs out of inodes', () => {
-            td.when(mockedStatVFS(UPLOAD_PATH)).thenResolve(outOfInodesStats);
+        it('should fail when the system runs out of inodes', function () {
+            when(mockedStatVFS(UPLOAD_PATH)).thenResolve(outOfInodesStats);
             return checker503(app, 'ready', spaceIssueResponse).then(checkCallExpectations);
         });
 
-        it('should fail when statvfs() fails', () => {
-            td.when(mockedStatVFS(UPLOAD_PATH)).thenReject(new Error('Failure'));
+        it('should fail when statvfs() fails', function () {
+            when(mockedStatVFS(UPLOAD_PATH)).thenReject(new Error('Failure'));
             return checker503(app, 'ready', spaceIssueResponse).then(checkCallExpectations);
         });
 
-        it('should fail when the target directory is not writable', () => {
-            td.when(mockedAccess(UPLOAD_PATH, td.matchers.isA(Number) as number)).thenReject(new Error());
+        it('should fail when the target directory is not writable', function () {
+            when(mockedAccess(UPLOAD_PATH, matchers.isA(Number) as number)).thenReject(new Error());
             return checker503(app, 'ready', uploadFolderIssueResponse);
         });
     });
 
-    describe('Health Check', () => {
-        it('should succeed', () => checker200(app, 'health'));
-        it('should fail when shutdown requested', () => {
+    describe('Health Check', function () {
+        it('should succeed', function () {
+            return checker200(app, 'health');
+        });
+
+        it('should fail when shutdown requested', function () {
             monitoring.healthChecker.shutdownRequested = true;
             return checker503(app, 'health', sigtermResponse);
         });

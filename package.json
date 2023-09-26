@@ -11,8 +11,9 @@
     "lint:fix": "eslint --fix .",
     "pretest": "npm run lint",
     "test": "mocha",
-    "test:coverage": "c8 mocha",
-    "posttest": "npm run build"
+    "posttest": "npm run build",
+    "pretest:coverage": "npm run lint",
+    "test:coverage": "c8 mocha"
   },
   "keywords": [],
   "author": "Myrotvorets <support@myrotvorets.center> (https://myrotvorets.center/)",
@@ -52,6 +53,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
     "eslint-formatter-gha": "^1.2.0",
+    "eslint-plugin-mocha": "^10.2.0",
     "mocha": "^10.2.0",
     "mocha-multi": "^1.1.7",
     "mocha-reporter-gha": "^1.0.2",

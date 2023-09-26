@@ -2,11 +2,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as promises from 'node:fs/promises';
 import { constants, readFile } from 'node:fs/promises';
-import { beforeEach, describe, it } from 'mocha';
 import { expect } from 'chai';
-import * as td from 'testdouble';
+import { type TestDouble, func, matchers, replace, replaceEsm, when } from 'testdouble';
 import express, { type Express } from 'express';
 import request from 'supertest';
+import type { Sharp } from 'sharp';
+import type fastGlob from 'fast-glob';
 import { environment } from '../../../src/lib/environment.mjs';
 import type * as uploader from '../../../src/services/upload.mjs';
 
@@ -25,41 +26,51 @@ const checkUnsupportedMediaType = (res: Response): void => checkError(res, 415, 
 const checkBadRequest = (res: Response): void => checkError(res, 400, 'BAD_REQUEST');
 const checkNotFoundResponse = (res: Response): void => checkError(res, 404, 'NOT_FOUND');
 
-describe('Upload', () => {
+describe('Upload', function () {
     let app: Express;
     let upload: typeof uploader;
-    const env = { ...process.env };
+    let env: typeof process.env;
 
-    const accessMock = td.function<typeof import('node:fs/promises').access>();
-    const mkDirMock = td.function<typeof import('node:fs/promises').mkdir>();
-    const globMock = td.function();
-    const metadataMock = td.function();
-    const filenameByGuidMock = td.function();
+    let accessMock: TestDouble<typeof promises.access>;
+    let mkDirMock: TestDouble<typeof promises.mkdir>;
+    let globMock: TestDouble<typeof fastGlob>;
+    let metadataMock: TestDouble<Sharp['metadata']>;
+    let filenameByGuidMock: TestDouble<typeof uploader.UploadService.filenameByGuid>;
 
-    beforeEach(async () => {
-        td.when(metadataMock()).thenResolve({ format: 'jpeg', chromaSubsampling: '4:2:0', isProgressive: true });
+    before(function () {
+        env = { ...process.env };
 
-        await td.replaceEsm('sharp', {
+        accessMock = func<typeof promises.access>();
+        mkDirMock = func<typeof promises.mkdir>();
+        globMock = func<typeof fastGlob>();
+        metadataMock = func<Sharp['metadata']>();
+        filenameByGuidMock = func<typeof uploader.UploadService.filenameByGuid>();
+    });
+
+    beforeEach(async function () {
+        when(metadataMock()).thenResolve({ format: 'jpeg', chromaSubsampling: '4:2:0', isProgressive: true });
+
+        await replaceEsm('sharp', {
             default: () => ({
                 metadata: metadataMock,
-                jpeg: td.function(),
-                toFile: td.function(),
-                rotate: td.function(),
+                jpeg: func(),
+                toFile: func(),
+                rotate: func(),
             }),
         });
 
-        await td.replaceEsm('node:fs/promises', {
+        await replaceEsm('node:fs/promises', {
             ...promises,
             access: accessMock,
             mkdir: mkDirMock,
         });
 
-        await td.replaceEsm('fast-glob', null, globMock);
+        await replaceEsm('fast-glob', null, globMock);
 
         upload = await import('../../../src/services/upload.mjs');
         const { configureApp } = await import('../../../src/server.mjs');
 
-        td.replace(upload.UploadService, 'filenameByGuid', filenameByGuidMock);
+        replace(upload.UploadService, 'filenameByGuid', filenameByGuidMock);
 
         process.env = {
             NODE_ENV: 'test',
@@ -75,11 +86,13 @@ describe('Upload', () => {
         return configureApp(app);
     });
 
-    afterEach(() => (process.env = { ...env }));
+    afterEach(function () {
+        process.env = { ...env };
+    });
 
-    describe('searchUploadHandler', () => {
-        describe('Error handling', () => {
-            it('should fail on empty upload (no Content-Type)', () => {
+    describe('searchUploadHandler', function () {
+        describe('Error handling', function () {
+            it('should fail on empty upload (no Content-Type)', function () {
                 return request(app)
                     .post('/search/00000000-0000-0000-0000-000000000000')
                     .expect(415)
@@ -87,7 +100,7 @@ describe('Upload', () => {
                     .expect(checkUnsupportedMediaType);
             });
 
-            it('should fail on empty upload (with Content-Type)', () => {
+            it('should fail on empty upload (with Content-Type)', function () {
                 return request(app)
                     .post('/search/00000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'image/png')
@@ -96,7 +109,7 @@ describe('Upload', () => {
                     .expect(checkUnsupportedMediaType);
             });
 
-            it('should fail on more than one file', () => {
+            it('should fail on more than one file', function () {
                 return request(app)
                     .post('/search/00000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'miltipart/form-data')
@@ -107,7 +120,7 @@ describe('Upload', () => {
                     .expect(checkBadRequest);
             });
 
-            it('should fail on a bad GUID', () => {
+            it('should fail on a bad GUID', function () {
                 return request(app)
                     .post('/search/Z0000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'image/png')
@@ -118,8 +131,8 @@ describe('Upload', () => {
             });
         });
 
-        describe('Normal operation', () => {
-            it('should behave correctly', () => {
+        describe('Normal operation', function () {
+            it('should behave correctly', function () {
                 return request(app)
                     .post('/search/00000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'image/png')
@@ -131,9 +144,9 @@ describe('Upload', () => {
         });
     });
 
-    describe('compareUploadHandler', () => {
-        describe('Error handling', () => {
-            it('should fail on empty upload (no Content-Type)', () => {
+    describe('compareUploadHandler', function () {
+        describe('Error handling', function () {
+            it('should fail on empty upload (no Content-Type)', function () {
                 return request(app)
                     .post('/compare/00000000-0000-0000-0000-000000000000')
                     .expect(415)
@@ -141,7 +154,7 @@ describe('Upload', () => {
                     .expect(checkUnsupportedMediaType);
             });
 
-            it('should fail on empty upload (with Content-Type)', () => {
+            it('should fail on empty upload (with Content-Type)', function () {
                 return request(app)
                     .post('/compare/00000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'image/png')
@@ -150,7 +163,7 @@ describe('Upload', () => {
                     .expect(checkUnsupportedMediaType);
             });
 
-            it('should fail on one file', () => {
+            it('should fail on one file', function () {
                 return request(app)
                     .post('/compare/00000000-0000-0000-0000-000000000000')
                     .attach('photo', `${__dirname}/../../fixtures/0057B7.png`)
@@ -159,7 +172,7 @@ describe('Upload', () => {
                     .expect(checkBadRequest);
             });
 
-            it('should fail on too many files', () => {
+            it('should fail on too many files', function () {
                 return request(app)
                     .post('/compare/00000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'multipart/form-data')
@@ -180,7 +193,7 @@ describe('Upload', () => {
                     .expect(checkBadRequest);
             });
 
-            it('should fail on a bad GUID', () => {
+            it('should fail on a bad GUID', function () {
                 return request(app)
                     .post('/compare/Z0000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'multipart/form-data')
@@ -192,8 +205,8 @@ describe('Upload', () => {
             });
         });
 
-        describe('Normal operation', () => {
-            it('should behave correctly', () => {
+        describe('Normal operation', function () {
+            it('should behave correctly', function () {
                 return request(app)
                     .post('/compare/00000000-0000-0000-0000-000000000000')
                     .set('Content-Type', 'multipart/form-data')
@@ -206,9 +219,9 @@ describe('Upload', () => {
         });
     });
 
-    describe('retrieveSearchHandler', () => {
-        describe('Error handling', () => {
-            it('should fail on a bad GUID', () => {
+    describe('retrieveSearchHandler', function () {
+        describe('Error handling', function () {
+            it('should fail on a bad GUID', function () {
                 return request(app)
                     .get('/get/Z0000000-0000-0000-0000-000000000000')
                     .expect(400)
@@ -217,13 +230,13 @@ describe('Upload', () => {
             });
         });
 
-        describe('Normal operation', () => {
-            it('should handle "File not found" condition', () => {
+        describe('Normal operation', function () {
+            it('should handle "File not found" condition', function () {
                 const guid = '00000000-0000-0000-0000-000000000000';
                 const mockedFilename = '/something';
-                td.when(accessMock(join(UPLOAD_PATH, mockedFilename), constants.R_OK)).thenReject(new Error('FAIL'));
+                when(accessMock(join(UPLOAD_PATH, mockedFilename), constants.R_OK)).thenReject(new Error('FAIL'));
 
-                td.when(filenameByGuidMock(guid)).thenReturn(mockedFilename);
+                when(filenameByGuidMock(guid)).thenReturn(mockedFilename);
 
                 return request(app)
                     .get(`/get/${guid}`)
@@ -232,12 +245,12 @@ describe('Upload', () => {
                     .expect(checkNotFoundResponse);
             });
 
-            it('should return the file when it exists', async () => {
+            it('should return the file when it exists', async function () {
                 const guid = '00000000-0000-0000-0000-000000000000';
                 const file = resolve(`${__dirname}/../../fixtures/0057B7.png`);
                 const buffer = await readFile(file);
-                td.when(accessMock(file, constants.R_OK)).thenResolve();
-                td.when(filenameByGuidMock(guid)).thenReturn(`/../${file}`); // `..` accounts for UPLOAD_DIR: /somewhere/../path/to/file
+                when(accessMock(file, constants.R_OK)).thenResolve();
+                when(filenameByGuidMock(guid)).thenReturn(`/../${file}`); // `..` accounts for UPLOAD_DIR: /somewhere/../path/to/file
                 return request(app)
                     .get(`/get/${guid}`)
                     .expect(200)
@@ -247,9 +260,9 @@ describe('Upload', () => {
         });
     });
 
-    describe('retrieveCompareHandler', () => {
-        describe('Error handling', () => {
-            it('should fail on a bad GUID', () => {
+    describe('retrieveCompareHandler', function () {
+        describe('Error handling', function () {
+            it('should fail on a bad GUID', function () {
                 return request(app)
                     .get('/get/Z0000000-0000-0000-0000-000000000000/1')
                     .expect(400)
@@ -257,7 +270,7 @@ describe('Upload', () => {
                     .expect(checkBadRequest);
             });
 
-            it('should fail on a bad number', () => {
+            it('should fail on a bad number', function () {
                 return request(app)
                     .get('/get/00000000-0000-0000-0000-000000000000/Z')
                     .expect(400)
@@ -265,7 +278,7 @@ describe('Upload', () => {
                     .expect(checkBadRequest);
             });
 
-            it('should fail on a too large number', () => {
+            it('should fail on a too large number', function () {
                 return request(app)
                     .get('/get/00000000-0000-0000-0000-000000000000/100')
                     .expect(400)
@@ -274,15 +287,15 @@ describe('Upload', () => {
             });
         });
 
-        describe('Normal operation', () => {
-            it('should handle "File not found" condition', () => {
+        describe('Normal operation', function () {
+            it('should handle "File not found" condition', function () {
                 const guid = '00000000-0000-0000-0000-000000000000';
                 const photoNumber = 1;
 
                 const mockedFilename = 'something';
-                td.when(accessMock(join(UPLOAD_PATH, mockedFilename), constants.R_OK)).thenReject(new Error('FAIL'));
+                when(accessMock(join(UPLOAD_PATH, mockedFilename), constants.R_OK)).thenReject(new Error('FAIL'));
 
-                td.when(filenameByGuidMock(`${guid}-${photoNumber}`)).thenReturn(mockedFilename);
+                when(filenameByGuidMock(`${guid}-${photoNumber}`)).thenReturn(mockedFilename);
 
                 return request(app)
                     .get(`/get/${guid}/${photoNumber}`)
@@ -291,13 +304,13 @@ describe('Upload', () => {
                     .expect(checkNotFoundResponse);
             });
 
-            it('should return the file when it exists', async () => {
+            it('should return the file when it exists', async function () {
                 const guid = '00000000-0000-0000-0000-000000000000';
                 const photoNumber = 1;
                 const file = resolve(`${__dirname}/../../fixtures/FFD700.png`);
                 const buffer = await readFile(file);
-                td.when(accessMock(file, constants.R_OK)).thenResolve();
-                td.when(filenameByGuidMock(`${guid}-${photoNumber}`)).thenReturn(`/../${file}`); // `..` accounts for UPLOAD_DIR: /somewhere/../path/to/file
+                when(accessMock(file, constants.R_OK)).thenResolve();
+                when(filenameByGuidMock(`${guid}-${photoNumber}`)).thenReturn(`/../${file}`); // `..` accounts for UPLOAD_DIR: /somewhere/../path/to/file
 
                 return request(app)
                     .get(`/get/${guid}/${photoNumber}`)
@@ -308,9 +321,9 @@ describe('Upload', () => {
         });
     });
 
-    describe('countHandler', () => {
-        describe('Error handling', () => {
-            it('should fail on a bad GUID', () => {
+    describe('countHandler', function () {
+        describe('Error handling', function () {
+            it('should fail on a bad GUID', function () {
                 return request(app)
                     .get('/count/Z0000000-0000-0000-0000-000000000000')
                     .expect(400)
@@ -319,13 +332,13 @@ describe('Upload', () => {
             });
         });
 
-        describe('Normal operation', () => {
-            it('should behave correctly', () => {
+        describe('Normal operation', function () {
+            it('should behave correctly', function () {
                 const guid = '00000000-0000-0000-0000-000000000000';
                 const filemask = 'blah';
 
-                td.when(globMock(join(UPLOAD_PATH, filemask), td.matchers.isA(Object))).thenResolve([]);
-                td.when(filenameByGuidMock(guid, '-*.jpg')).thenReturn(filemask);
+                when(globMock(join(UPLOAD_PATH, filemask), matchers.isA(Object) as fastGlob.Options)).thenResolve([]);
+                when(filenameByGuidMock(guid, '-*.jpg')).thenReturn(filemask);
 
                 const expected = {
                     success: true,
