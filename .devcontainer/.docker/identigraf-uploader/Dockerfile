@@ -1,4 +1,4 @@
-FROM ghcr.io/sjinks/codespaces/nodejs:latest
+FROM ghcr.io/sjinks/codespaces/nodejs:latest@sha256:74fe721fb452224b7ceb081b3b00873ef301d67d926773fd598a87fc19c66a04
 
 RUN \
     apk add --no-cache nginx && \
