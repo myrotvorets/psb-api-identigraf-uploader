@@ -44,7 +44,8 @@
                 "ms-azuretools.vscode-docker",
                 "zhiayang.tabindentspacealign",
                 "42Crunch.vscode-openapi",
-                "natqe.reload"
+                "natqe.reload",
+                "redhat.vscode-yaml"
             ],
             "settings": {
                 "files.autoSave": "onWindowChange"
