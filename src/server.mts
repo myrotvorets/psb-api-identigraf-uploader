@@ -7,6 +7,7 @@ import { cleanUploadedFilesMiddleware } from '@myrotvorets/clean-up-after-multer
 import { createServer } from '@myrotvorets/create-server';
 import morgan from 'morgan';
 import { memoryStorage } from 'multer';
+import { logs } from '@opentelemetry/api-logs';
 
 import { environment } from './lib/environment.mjs';
 
@@ -70,6 +71,14 @@ export function setupApp(): Express {
             '[PSBAPI-identigraf-uploader] :req[X-Request-ID]\t:method\t:url\t:status :res[content-length]\t:date[iso]\t:response-time\t:total-time',
         ),
     );
+
+    app.use((req, res, next) => {
+        const logger = logs.getLogger('default');
+        logger.emit({
+            body: `${req.method} ${req.url} ${req.ip}`,
+        });
+        next();
+    });
 
     return app;
 }
