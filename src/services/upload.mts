@@ -1,16 +1,22 @@
 import { mkdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import sharp from 'sharp';
 
+type UploadedFileInternal =
+    | (Pick<Express.Multer.File, 'path' | 'destination'> & { buffer: undefined })
+    | (Pick<Express.Multer.File, 'buffer'> & { path: undefined; destination: undefined });
+
+type UploadedFile = Pick<Express.Multer.File, 'path' | 'destination' | 'buffer'>;
+
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class UploadService {
-    public static async uploadFile(
-        file: Pick<Express.Multer.File, 'path' | 'destination' | 'buffer'>,
-        guid: string,
-    ): Promise<string> {
-        const img = await UploadService.prepareFile(file.path ?? file.buffer); // memoryStorage() returns Buffer
+    public static async uploadFile(file: UploadedFile, guid: string): Promise<string> {
+        const f = file as unknown as UploadedFileInternal;
+        const img = await UploadService.prepareFile(f.path ?? f.buffer); // memoryStorage() returns Buffer
         const hashedPath = UploadService.hashFileName(guid);
         const filename = `${guid}.jpg`;
-        const destPath = join(file.destination ?? '', hashedPath); // No file.destination for memoryStorage()
+        const destPath = join(f.destination ?? tmpdir(), hashedPath); // No file.destination for memoryStorage()
         const destJpeg = join(destPath, filename);
 
         await mkdir(destPath, { recursive: true, mode: 0o755 });
