@@ -26,7 +26,7 @@ async function searchUploadHandler(
     res: Response<UploadResponse>,
     next: NextFunction,
 ): Promise<void> {
-    const file = (req.files as Express.Multer.File[])[0];
+    const file = (req.files as Express.Multer.File[])[0]!;
     const { guid } = req.params;
 
     await UploadService.uploadFile(file, guid);
