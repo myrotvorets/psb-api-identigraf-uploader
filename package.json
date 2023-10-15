@@ -23,7 +23,7 @@
     "@myrotvorets/clean-up-after-multer": "^1.1.7",
     "@myrotvorets/create-server": "^2.2.0",
     "@myrotvorets/express-async-middleware-wrapper": "^2.2.0",
-    "@myrotvorets/express-microservice-middlewares": "^1.6.0",
+    "@myrotvorets/express-microservice-middlewares": "^2.0.0",
     "@myrotvorets/oav-installer": "^4.1.0",
     "@myrotvorets/opentelemetry-configurator": "^6.4.1",
     "@opentelemetry/api-logs": "^0.44.0",
