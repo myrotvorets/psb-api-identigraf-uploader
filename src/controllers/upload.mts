@@ -5,7 +5,7 @@ import { asyncWrapperMiddleware } from '@myrotvorets/express-async-middleware-wr
 import { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
 import * as fastglob from 'fast-glob';
 import { Environment, environment } from '../lib/environment.mjs';
-import { UploadService } from '../services/upload.mjs';
+import { UploadService } from '../services/uploadservice.mjs';
 
 const glob = fastglob.default;
 
@@ -61,6 +61,7 @@ async function sendFile(fname: string, res: Response<never>, next: NextFunction)
         await access(fname, constants.R_OK);
         res.sendFile(fname, {
             maxAge: 31556952,
+            immutable: true,
         });
     } catch {
         next({

@@ -36,7 +36,7 @@ export class UploadService implements UploadServiceInterface {
     }
 
     private static async prepareFile(path: string | Buffer): Promise<sharp.Sharp> {
-        const img = sharp(path, { failOnError: false, sequentialRead: true });
+        const img = sharp(path, { failOn: 'none', sequentialRead: true });
 
         const metadata = await img.metadata();
         const isJPEG = metadata.format === 'jpeg';

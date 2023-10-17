@@ -4,7 +4,7 @@ import type { MakeDirectoryOptions } from 'node:fs';
 import { expect } from 'chai';
 import { type TestDouble, func, matchers, replaceEsm, verify, when } from 'testdouble';
 import type { JpegOptions, Sharp } from 'sharp';
-import type { UploadService } from '../../../src/services/upload.mjs';
+import type { UploadService } from '../../services/uploadservice.mjs';
 import { metadataOtherJpeg, metadataPng, normalMetadata } from './fixtures.mjs';
 
 describe('UploadService', function () {
@@ -42,7 +42,7 @@ describe('UploadService', function () {
                 }),
             });
 
-            const svc = await import('../../../src/services/upload.mjs');
+            const svc = await import('../../../src/services/uploadservice.mjs');
             service = new svc.UploadService();
         });
 
@@ -102,7 +102,7 @@ describe('UploadService', function () {
         let service: UploadService;
 
         before(async function () {
-            const svc = await import('../../../src/services/upload.mjs');
+            const svc = await import('../../../src/services/uploadservice.mjs');
             service = new svc.UploadService();
         });
 

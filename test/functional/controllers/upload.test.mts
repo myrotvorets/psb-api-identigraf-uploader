@@ -9,7 +9,7 @@ import request from 'supertest';
 import type { Sharp } from 'sharp';
 import type fastGlob from 'fast-glob';
 import { environment } from '../../../src/lib/environment.mjs';
-import type * as uploader from '../../../src/services/upload.mjs';
+import type * as uploader from '../../services/uploadservice.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -67,7 +67,7 @@ describe('Upload', function () {
 
         await replaceEsm('fast-glob', null, globMock);
 
-        upload = await import('../../../src/services/upload.mjs');
+        upload = await import('../../../src/services/uploadservice.mjs');
         const { configureApp } = await import('../../../src/server.mjs');
 
         replace(upload.UploadService.prototype, 'filenameByGuid', filenameByGuidMock);
