@@ -29,7 +29,8 @@ async function searchUploadHandler(
     const file = (req.files as Express.Multer.File[])[0]!;
     const { guid } = req.params;
 
-    await UploadService.uploadFile(file, guid);
+    const service = new UploadService();
+    await service.uploadFile(file, guid);
     res.json({
         success: true,
     });
@@ -45,7 +46,8 @@ async function compareUploadHandler(
     const files = req.files as Express.Multer.File[];
     const { guid } = req.params;
 
-    await Promise.all(files.map((file, index) => UploadService.uploadFile(file, `${guid}-${index}`)));
+    const service = new UploadService();
+    await Promise.all(files.map((file, index) => service.uploadFile(file, `${guid}-${index}`)));
 
     res.json({
         success: true,
@@ -74,7 +76,8 @@ function retrieveSearchHandler(env: Environment): RequestHandler<UploadParams, n
     return asyncWrapperMiddleware(
         (req: Request<UploadParams, never, never, never>, res: Response<never>, next: NextFunction): Promise<void> => {
             const { guid } = req.params;
-            const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid)));
+            const service = new UploadService();
+            const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, service.filenameByGuid(guid)));
             return sendFile(fname, res, next);
         },
     );
@@ -88,9 +91,8 @@ function retrieveCompareHandler(env: Environment): RequestHandler<UploadCompareP
             next: NextFunction,
         ): Promise<void> => {
             const { guid, number } = req.params;
-            const fname = resolve(
-                join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(`${guid}-${number}`)),
-            );
+            const service = new UploadService();
+            const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, service.filenameByGuid(`${guid}-${number}`)));
 
             return sendFile(fname, res, next);
         },
@@ -109,7 +111,8 @@ function countPhotosHandler(env: Environment): RequestHandler<UploadParams, Coun
             res: Response<CountPhotosResponse>,
         ): Promise<void> => {
             const { guid } = req.params;
-            const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, UploadService.filenameByGuid(guid, '-*.jpg')));
+            const service = new UploadService();
+            const fname = resolve(join(env.IDENTIGRAF_UPLOAD_FOLDER, service.filenameByGuid(guid, '-*.jpg')));
 
             const entries = await glob(fname, {
                 braceExpansion: false,

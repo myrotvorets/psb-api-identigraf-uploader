@@ -35,7 +35,7 @@ describe('Upload', function () {
     let mkDirMock: TestDouble<typeof promises.mkdir>;
     let globMock: TestDouble<typeof fastGlob>;
     let metadataMock: TestDouble<Sharp['metadata']>;
-    let filenameByGuidMock: TestDouble<typeof uploader.UploadService.filenameByGuid>;
+    let filenameByGuidMock: TestDouble<typeof uploader.UploadService.prototype.filenameByGuid>;
 
     before(function () {
         env = { ...process.env };
@@ -44,7 +44,7 @@ describe('Upload', function () {
         mkDirMock = func<typeof promises.mkdir>();
         globMock = func<typeof fastGlob>();
         metadataMock = func<Sharp['metadata']>();
-        filenameByGuidMock = func<typeof uploader.UploadService.filenameByGuid>();
+        filenameByGuidMock = func<typeof uploader.UploadService.prototype.filenameByGuid>();
     });
 
     beforeEach(async function () {
@@ -70,7 +70,7 @@ describe('Upload', function () {
         upload = await import('../../../src/services/upload.mjs');
         const { configureApp } = await import('../../../src/server.mjs');
 
-        replace(upload.UploadService, 'filenameByGuid', filenameByGuidMock);
+        replace(upload.UploadService.prototype, 'filenameByGuid', filenameByGuidMock);
 
         process.env = {
             NODE_ENV: 'test',

@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import sharp from 'sharp';
+import type { UploadServiceInterface } from './uploadserviceinterface.mjs';
 
 type UploadedFileInternal =
     | (Pick<Express.Multer.File, 'path' | 'destination'> & { buffer: undefined })
@@ -9,9 +10,8 @@ type UploadedFileInternal =
 
 type UploadedFile = Pick<Express.Multer.File, 'path' | 'destination' | 'buffer'>;
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class UploadService {
-    public static async uploadFile(file: UploadedFile, guid: string): Promise<string> {
+export class UploadService implements UploadServiceInterface {
+    public async uploadFile(file: UploadedFile, guid: string): Promise<string> {
         const f = file as unknown as UploadedFileInternal;
         const img = await UploadService.prepareFile(f.path ?? f.buffer); // memoryStorage() returns Buffer
         const hashedPath = UploadService.hashFileName(guid);
@@ -25,7 +25,7 @@ export class UploadService {
         return join(hashedPath, filename);
     }
 
-    public static filenameByGuid(guid: string, ext = '.jpg'): string {
+    public filenameByGuid(guid: string, ext = '.jpg'): string {
         if (!/^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/u.test(guid)) {
             throw new TypeError(`GUID is not valid: ${guid}`);
         }

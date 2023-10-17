@@ -9,7 +9,7 @@ import { metadataOtherJpeg, metadataPng, normalMetadata } from './fixtures.mjs';
 
 describe('UploadService', function () {
     describe('uploadFile()', function () {
-        let service: typeof UploadService;
+        let service: UploadService;
         let mkdirMock: TestDouble<typeof promises.mkdir>;
         let metadataMock: TestDouble<Sharp['metadata']>;
         let jpegMock: TestDouble<Sharp['jpeg']>;
@@ -43,7 +43,7 @@ describe('UploadService', function () {
             });
 
             const svc = await import('../../../src/services/upload.mjs');
-            service = svc.UploadService;
+            service = new svc.UploadService();
         });
 
         const guid = 'd2a4b27c-1d11-472a-826e-e953bb2a2a21';
@@ -99,11 +99,11 @@ describe('UploadService', function () {
     });
 
     describe('filenameByGuid()', function () {
-        let service: typeof UploadService;
+        let service: UploadService;
 
-        beforeEach(async function () {
+        before(async function () {
             const svc = await import('../../../src/services/upload.mjs');
-            service = svc.UploadService;
+            service = new svc.UploadService();
         });
 
         it('should append a default extension', function () {
