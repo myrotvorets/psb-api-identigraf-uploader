@@ -61,7 +61,7 @@
     "mocha-reporter-sonarqube": "^2.0.4",
     "nodemon": "^3.0.1",
     "supertest": "^6.3.3",
-    "testdouble": "^3.19.0",
+    "testdouble": "^3.20.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   },
