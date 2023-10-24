@@ -23,7 +23,7 @@ export async function configureApp(app: express.Express): Promise<void> {
             app.use(requestDurationMiddleware, json());
 
             await installOpenApiValidator(
-                join(dirname(fileURLToPath(import.meta.url)), 'specs', 'identigraf-uploader.yaml'),
+                join(dirname(fileURLToPath(import.meta.url)), 'specs', 'identigraf-uploader-private.yaml'),
                 app,
                 env.NODE_ENV,
                 {
