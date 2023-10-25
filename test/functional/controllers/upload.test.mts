@@ -83,7 +83,7 @@ describe('Upload', function () {
 
         app = express();
         app.disable('x-powered-by');
-        return configureApp(app);
+        configureApp(app);
     });
 
     afterEach(function () {

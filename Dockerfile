@@ -23,7 +23,7 @@ WORKDIR /srv/service
 RUN chown nobody:nobody /srv/service && apk add --no-cache vips vips-cpp
 USER nobody:nobody
 ENTRYPOINT ["/usr/bin/node", "index.mjs"]
+COPY --chown=nobody:nobody --from=build /srv/service/node_modules ./node_modules
 COPY --chown=nobody:nobody ./src/specs ./specs
 COPY --chown=nobody:nobody --from=build /srv/service/dist/ ./
-COPY --chown=nobody:nobody --from=build /srv/service/node_modules ./node_modules
 COPY --chown=nobody:nobody ./package.json ./

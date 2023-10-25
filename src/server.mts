@@ -15,26 +15,27 @@ import { monitoringController } from './controllers/monitoring.mjs';
 import { uploadErrorHandlerMiddleware } from './middleware/upload.mjs';
 import { requestDurationMiddleware } from './middleware/duration.mjs';
 
-export async function configureApp(app: express.Express): Promise<void> {
-    return getTracer().startActiveSpan('configureApp', async (span): Promise<void> => {
+export function configureApp(app: express.Express): void {
+    getTracer().startActiveSpan('configureApp', (span): void => {
         try {
             const env = environment();
 
             app.use(requestDurationMiddleware, json());
 
-            await installOpenApiValidator(
-                join(dirname(fileURLToPath(import.meta.url)), 'specs', 'identigraf-uploader-private.yaml'),
-                app,
-                env.NODE_ENV,
-                {
-                    fileUploader: {
-                        storage: env.NODE_ENV === 'test' ? memoryStorage() : /* c8 ignore next */ undefined,
-                        dest: env.IDENTIGRAF_UPLOAD_FOLDER,
-                        limits: {
-                            fileSize: env.IDENTIGRAF_MAX_FILE_SIZE,
+            app.use(
+                installOpenApiValidator(
+                    join(dirname(fileURLToPath(import.meta.url)), 'specs', 'identigraf-uploader-private.yaml'),
+                    env.NODE_ENV,
+                    {
+                        fileUploader: {
+                            storage: env.NODE_ENV === 'test' ? memoryStorage() : /* c8 ignore next */ undefined,
+                            dest: env.IDENTIGRAF_UPLOAD_FOLDER,
+                            limits: {
+                                fileSize: env.IDENTIGRAF_MAX_FILE_SIZE,
+                            },
                         },
                     },
-                },
+                ),
             );
 
             app.use(
@@ -75,7 +76,7 @@ export async function run(): Promise<void> {
 
     app.use('/monitoring', monitoringController(env));
 
-    await configureApp(app);
+    configureApp(app);
 
     const server = await createServer(app);
     server.listen(env.PORT);
