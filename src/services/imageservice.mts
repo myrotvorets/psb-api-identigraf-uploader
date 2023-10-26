@@ -2,6 +2,10 @@ import sharp, { type Sharp } from 'sharp';
 import { ImageServiceInterface } from './imageserviceinterface.mjs';
 
 export class ImageService implements ImageServiceInterface {
+    public autoRotate(input: NodeJS.ReadableStream): NodeJS.ReadableStream {
+        return this.sharpenStream(input).rotate();
+    }
+
     public resize(input: NodeJS.ReadableStream, size: number): NodeJS.ReadableStream {
         return this.sharpenStream(input).resize({
             width: size,

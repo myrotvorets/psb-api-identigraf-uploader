@@ -14,11 +14,13 @@ function metadata(stream: NodeJS.ReadableStream): Promise<Metadata> {
 const basedir = dirname(fileURLToPath(import.meta.url));
 const wide = `${basedir}/../../fixtures/200x100.png`;
 const tall = `${basedir}/../../fixtures/100x200.png`;
+const jpeg = `${basedir}/../../fixtures/p5.jpg`;
 
 describe('ImageService', function () {
     let service: ImageService;
     let wideStream: ReadStream;
     let tallStream: ReadStream;
+    let jpegStream: ReadStream;
 
     before(function () {
         service = new ImageService();
@@ -27,6 +29,7 @@ describe('ImageService', function () {
     beforeEach(function () {
         wideStream = createReadStream(wide);
         tallStream = createReadStream(tall);
+        jpegStream = createReadStream(jpeg);
     });
 
     describe('#resize()', function () {
@@ -53,6 +56,29 @@ describe('ImageService', function () {
             return expect(metadata(result)).to.eventually.include({
                 width: 25,
                 height: 50,
+                format: 'png',
+            });
+        });
+    });
+
+    describe('#autorotate', function () {
+        it('should use EXIF to automatically orient images', function () {
+            // width: 450, height: 300, orientation: 5
+            const result = service.autoRotate(jpegStream);
+            return expect(metadata(result))
+                .to.eventually.include({
+                    width: 300,
+                    height: 450,
+                    format: 'jpeg',
+                })
+                .and.not.have.property('orientation');
+        });
+
+        it('should not modify PNG files', function () {
+            const result = service.autoRotate(wideStream);
+            return expect(metadata(result)).to.eventually.include({
+                width: 200,
+                height: 100,
                 format: 'png',
             });
         });

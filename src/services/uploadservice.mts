@@ -2,13 +2,11 @@ import { mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, sep } from 'node:path';
 import sharp from 'sharp';
-import type { UploadServiceInterface } from './uploadserviceinterface.mjs';
+import type { UploadServiceInterface, UploadedFile } from './uploadserviceinterface.mjs';
 
 type UploadedFileInternal =
     | (Pick<Express.Multer.File, 'path' | 'destination'> & { buffer: undefined })
     | (Pick<Express.Multer.File, 'buffer'> & { path: undefined; destination: undefined });
-
-type UploadedFile = Pick<Express.Multer.File, 'path' | 'destination' | 'buffer'>;
 
 export class UploadService implements UploadServiceInterface {
     public async uploadFile(file: UploadedFile, guid: string): Promise<string> {
@@ -48,8 +46,6 @@ export class UploadService implements UploadServiceInterface {
             img.jpeg({
                 progressive: false,
                 chromaSubsampling: '4:2:0',
-                optimizeCoding: true,
-                optimizeScans: true,
             });
         }
 

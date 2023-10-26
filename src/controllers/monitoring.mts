@@ -14,7 +14,7 @@ import type { Environment } from '../lib/environment.mjs';
 
 export const healthChecker = new HealthChecker();
 
-export function monitoringController(env: Environment): Router {
+export function monitoringController(env: Pick<Environment, 'IDENTIGRAF_UPLOAD_FOLDER'>): Router {
     const router = Router();
 
     const dirCheck = new ReadinessCheck(

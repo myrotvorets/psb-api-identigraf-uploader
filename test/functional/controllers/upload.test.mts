@@ -4,16 +4,15 @@ import * as promises from 'node:fs/promises';
 import { constants, readFile } from 'node:fs/promises';
 import { expect } from 'chai';
 import { type TestDouble, func, matchers, replace, replaceEsm, when } from 'testdouble';
-import express, { type Express } from 'express';
-import request from 'supertest';
+import { type Express } from 'express';
+import request, { type Response } from 'supertest';
 import type { Sharp } from 'sharp';
 import type fastGlob from 'fast-glob';
-import { environment } from '../../../src/lib/environment.mjs';
 import type * as uploader from '../../services/uploadservice.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const UPLOAD_PATH = '/somewhere';
+const UPLOAD_PATH = process.env['IDENTIGRAF_UPLOAD_FOLDER']!;
 
 function checkError(res: Response, expectedStatus: number, expectedCode: string): void {
     expect(res.body).to.be.an('object').and.include({
@@ -29,7 +28,6 @@ const checkNotFoundResponse = (res: Response): void => checkError(res, 404, 'NOT
 describe('Upload', function () {
     let app: Express;
     let upload: typeof uploader;
-    let env: typeof process.env;
 
     let accessMock: TestDouble<typeof promises.access>;
     let mkDirMock: TestDouble<typeof promises.mkdir>;
@@ -38,8 +36,6 @@ describe('Upload', function () {
     let filenameByGuidMock: TestDouble<typeof uploader.UploadService.prototype.filenameByGuid>;
 
     before(function () {
-        env = { ...process.env };
-
         accessMock = func<typeof promises.access>();
         mkDirMock = func<typeof promises.mkdir>();
         globMock = func<typeof fastGlob>();
@@ -68,26 +64,12 @@ describe('Upload', function () {
         await replaceEsm('fast-glob', null, globMock);
 
         upload = await import('../../../src/services/uploadservice.mjs');
-        const { configureApp } = await import('../../../src/server.mjs');
+        const { createApp, configureApp } = await import('../../../src/server.mjs');
 
         replace(upload.UploadService.prototype, 'filenameByGuid', filenameByGuidMock);
 
-        process.env = {
-            NODE_ENV: 'test',
-            PORT: '3030',
-            IDENTIGRAF_UPLOAD_FOLDER: UPLOAD_PATH,
-            IDENTIGRAF_MAX_FILE_SIZE: '100',
-        };
-
-        environment(true);
-
-        app = express();
-        app.disable('x-powered-by');
+        app = createApp();
         configureApp(app);
-    });
-
-    afterEach(function () {
-        process.env = { ...env };
     });
 
     describe('searchUploadHandler', function () {
