@@ -1,15 +1,24 @@
 import { AwilixContainer, asClass, asFunction, asValue, createContainer } from 'awilix';
 import type { NextFunction, Request, Response } from 'express';
-import { type Logger, type Meter, getLogger, getMeter } from '@myrotvorets/otel-utils';
+import { type Logger, getLogger } from '@myrotvorets/otel-utils';
 import { environment } from './environment.mjs';
+import { DownloadService } from '../services/downloadservice.mjs';
+import { FileService } from '../services/fileservice.mjs';
+import { ImageService } from '../services/imageservice.mjs';
 import { UploadService } from '../services/uploadservice.mjs';
+import type { DownloadServiceInterface } from '../services/downloadserviceinterface.mjs';
+import type { FileServiceInterface } from '../services/fileserviceinterface.mjs';
+import type { ImageServiceInterface } from '../services/imageserviceinterface.mjs';
 import type { UploadServiceInterface } from '../services/uploadserviceinterface.mjs';
 
 export interface Container {
     environment: ReturnType<typeof environment>;
     logger: Logger;
-    meter: Meter;
+    basePath: string;
     uploadService: UploadServiceInterface;
+    downloadService: DownloadServiceInterface;
+    imageService: ImageServiceInterface;
+    fileService: FileServiceInterface;
 }
 
 export interface RequestContainer {
@@ -36,17 +45,16 @@ function createLogger({ req }: Partial<RequestContainer>): Logger {
 }
 /* c8 ignore stop */
 
-function createMeter(): Meter {
-    return getMeter();
-}
-
 export function initializeContainer(): typeof container {
     const env = environment(true);
     container.register({
         environment: asValue(env),
         logger: asFunction(createLogger).scoped(),
-        meter: asFunction(createMeter).singleton(),
+        basePath: asValue(env.IDENTIGRAF_UPLOAD_FOLDER),
         uploadService: asClass(UploadService).singleton(),
+        downloadService: asClass(DownloadService).singleton(),
+        imageService: asClass(ImageService).singleton(),
+        fileService: asClass(FileService).singleton(),
     });
 
     container.register('req', asValue(undefined));

@@ -1,58 +1,60 @@
-import { mkdir } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join, sep } from 'node:path';
-import sharp from 'sharp';
+import { join } from 'node:path';
+import { BufferStream } from '@myrotvorets/buffer-stream';
+import { pipeline } from 'node:stream/promises';
 import type { UploadServiceInterface, UploadedFile } from './uploadserviceinterface.mjs';
+import { hashGuid } from '../lib/utils.mjs';
+import { ImageServiceInterface } from './imageserviceinterface.mjs';
+import { FileServiceInterface } from './fileserviceinterface.mjs';
 
 type UploadedFileInternal =
     | (Pick<Express.Multer.File, 'path' | 'destination'> & { buffer: undefined })
     | (Pick<Express.Multer.File, 'buffer'> & { path: undefined; destination: undefined });
 
+export interface UploadServiceOptions {
+    basePath: string;
+    fileService: FileServiceInterface;
+    imageService: ImageServiceInterface;
+}
+
 export class UploadService implements UploadServiceInterface {
-    public async uploadFile(file: UploadedFile, guid: string): Promise<string> {
+    readonly #destPath: string;
+    readonly #fileService: FileServiceInterface;
+    readonly #imageService: ImageServiceInterface;
+
+    public constructor({ basePath, fileService, imageService }: UploadServiceOptions) {
+        this.#destPath = basePath;
+        this.#fileService = fileService;
+        this.#imageService = imageService;
+    }
+
+    public async uploadFile(file: UploadedFile, guid: string, n?: number | undefined): Promise<string> {
         const f = file as unknown as UploadedFileInternal;
-        const img = await UploadService.prepareFile(f.path ?? f.buffer); // memoryStorage() returns Buffer
-        const hashedPath = UploadService.hashFileName(guid);
-        const filename = `${guid}.jpg`;
-        const destPath = join(f.destination ?? tmpdir(), hashedPath); // No file.destination for memoryStorage()
+        let stream: NodeJS.ReadableStream = f.path
+            ? this.#fileService.createReadStream(f.path)
+            : new BufferStream(f.buffer!);
+
+        stream = await this.#imageService.convertToJpeg(this.#imageService.autoRotate(stream));
+
+        const hashedPath = hashGuid(guid);
+        const filename = this.getFilename(guid, n);
+
+        const destPath = join(this.#destPath, hashedPath);
         const destJpeg = join(destPath, filename);
 
-        await mkdir(destPath, { recursive: true, mode: 0o755 });
-        await img.toFile(destJpeg);
+        await this.#fileService.mkdir(destPath, { recursive: true, mode: 0o755 });
 
-        return join(hashedPath, filename);
+        const destStream = this.#fileService.createWriteStream(destJpeg);
+        await pipeline(stream, destStream);
+        return destJpeg;
     }
 
-    public filenameByGuid(guid: string, ext = '.jpg'): string {
-        if (!/^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}/u.test(guid)) {
-            throw new TypeError(`GUID is not valid: ${guid}`);
+    protected getFilename(guid: string, n: number | undefined): string {
+        let name = guid;
+        if (n !== undefined) {
+            name += `-${n}`;
         }
 
-        const hashedPath = UploadService.hashFileName(guid);
-        const filename = `${guid}${ext}`;
-        return join(hashedPath, filename);
-    }
-
-    private static async prepareFile(path: string | Buffer): Promise<sharp.Sharp> {
-        const img = sharp(path, { failOn: 'none', sequentialRead: true });
-
-        const metadata = await img.metadata();
-        const isJPEG = metadata.format === 'jpeg';
-        const sf = metadata.chromaSubsampling || '4:2:0';
-        const isProgressive = !!metadata.isProgressive;
-        const flag = !isJPEG || sf !== '4:2:0' || isProgressive;
-        img.rotate();
-        if (flag) {
-            img.jpeg({
-                progressive: false,
-                chromaSubsampling: '4:2:0',
-            });
-        }
-
-        return img;
-    }
-
-    private static hashFileName(guid: string, separator: string = sep): string {
-        return [guid.substring(0, 2), guid.substring(2, 4), guid.substring(4, 6)].join(separator);
+        name += '.jpg';
+        return name;
     }
 }
