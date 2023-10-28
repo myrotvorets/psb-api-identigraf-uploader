@@ -1,7 +1,6 @@
 import { use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiSubset from 'chai-subset';
-import { reset } from 'testdouble';
 
 use(chaiAsPromised);
 use(chaiSubset);
@@ -19,9 +18,5 @@ process.env = {
 export const mochaHooks = {
     afterAll() {
         process.env = { ...env };
-    },
-    /** @returns {void} */
-    afterEach() {
-        reset();
     },
 };

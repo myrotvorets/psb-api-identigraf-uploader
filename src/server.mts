@@ -12,8 +12,9 @@ import { uploadErrorHandlerMiddleware } from './middleware/upload.mjs';
 import { requestDurationMiddleware } from './middleware/duration.mjs';
 import { loggerMiddleware } from './middleware/logger.mjs';
 
-import { uploadController } from './controllers/upload.mjs';
+import { downloadController } from './controllers/download.mjs';
 import { monitoringController } from './controllers/monitoring.mjs';
+import { uploadController } from './controllers/upload.mjs';
 
 export function configureApp(app: express.Express): ReturnType<typeof initializeContainer> {
     return getTracer().startActiveSpan('configureApp', (span): ReturnType<typeof initializeContainer> => {
@@ -36,6 +37,7 @@ export function configureApp(app: express.Express): ReturnType<typeof initialize
                     },
                 }),
                 uploadController(),
+                downloadController(),
                 notFoundMiddleware,
                 cleanUploadedFilesMiddleware(),
                 uploadErrorHandlerMiddleware,
@@ -64,10 +66,7 @@ export function createApp(): Express {
 /* c8 ignore start */
 export async function run(): Promise<void> {
     const app = createApp();
-    const container = configureApp(app);
-    const env = container.resolve('environment');
-
-    const server = await createServer(app);
-    server.listen(env.PORT);
+    configureApp(app);
+    await createServer(app);
 }
 /* c8 ignore stop */

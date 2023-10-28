@@ -61,7 +61,7 @@ describe('ImageService', function () {
         });
     });
 
-    describe('#autorotate', function () {
+    describe('#autorotate()', function () {
         it('should use EXIF to automatically orient images', function () {
             // width: 450, height: 300, orientation: 5
             const result = service.autoRotate(jpegStream);
@@ -90,6 +90,20 @@ describe('ImageService', function () {
             return expect(metadata(result)).to.eventually.include({
                 format: 'webp',
             });
+        });
+    });
+
+    describe('#convertToJpeg()', function () {
+        it('should convert files to JPG', async function () {
+            const result = await service.convertToJpeg(wideStream);
+            return expect(metadata(result)).to.eventually.include({
+                format: 'jpeg',
+            });
+        });
+
+        it('should not modify JPG files', function () {
+            const result = service.convertToJpeg(jpegStream);
+            return expect(result).to.eventually.equal(jpegStream);
         });
     });
 
