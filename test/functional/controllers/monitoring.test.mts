@@ -10,10 +10,10 @@ import { sigtermResponse, spaceIssueResponse, uploadFolderIssueResponse } from '
 import { outOfInodesStats, outOfSpaceStats } from '../../fixtures/vfsstats.mjs';
 import { FakeFileService, accessMock, statvfsMock } from '../../mocks/fakefileservice.mjs';
 
-const checker200 = (app: unknown, endpoint: string): Test =>
+const checker200 = (app: Express, endpoint: string): Test =>
     request(app).get(`/monitoring/${endpoint}`).expect('Content-Type', /json/u).expect(200);
 
-const checker503 = (app: unknown, endpoint: string, match: Record<string, unknown>): Test =>
+const checker503 = (app: Express, endpoint: string, match: Record<string, unknown>): Test =>
     request(app)
         .get(`/monitoring/${endpoint}`)
         .expect('Content-Type', /json/u)
