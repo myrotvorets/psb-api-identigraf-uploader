@@ -21,10 +21,10 @@ describe('environment', function () {
         };
 
         process.env = {
-            NODE_ENV: `${expected.NODE_ENV}`,
+            NODE_ENV: expected.NODE_ENV,
             PORT: `${expected.PORT}`,
             EXTRA: 'xxx',
-            IDENTIGRAF_UPLOAD_FOLDER: `${expected.IDENTIGRAF_UPLOAD_FOLDER}`,
+            IDENTIGRAF_UPLOAD_FOLDER: expected.IDENTIGRAF_UPLOAD_FOLDER,
             IDENTIGRAF_MAX_FILE_SIZE: `${expected.IDENTIGRAF_MAX_FILE_SIZE}`,
         };
 
@@ -41,9 +41,9 @@ describe('environment', function () {
         };
 
         process.env = {
-            NODE_ENV: `${expected.NODE_ENV}`,
+            NODE_ENV: expected.NODE_ENV,
             PORT: `${expected.PORT}`,
-            IDENTIGRAF_UPLOAD_FOLDER: `${expected.IDENTIGRAF_UPLOAD_FOLDER}`,
+            IDENTIGRAF_UPLOAD_FOLDER: expected.IDENTIGRAF_UPLOAD_FOLDER,
             IDENTIGRAF_MAX_FILE_SIZE: `${expected.IDENTIGRAF_MAX_FILE_SIZE}`,
         };
 
