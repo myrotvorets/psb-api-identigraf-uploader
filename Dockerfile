@@ -1,4 +1,4 @@
-FROM myrotvorets/node-build:latest@sha256:69481ec7c2045338b72d9a15a50d0795c7d04788e01aaf844e4a45de0d63d453 AS build
+FROM myrotvorets/node-build:latest@sha256:c06ac520f025b90d2eaf7157dd6b365e3488f28382aa0e62fc734367897150f9 AS build
 USER root
 WORKDIR /srv/service
 RUN chown nobody:nobody /srv/service && apk add --no-cache vips-dev
