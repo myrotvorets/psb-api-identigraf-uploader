@@ -16,7 +16,7 @@ describe('uploadErrorHandlerMiddleware', function () {
     it('should not modify non-multer errors', function () {
         app.use('/', (_req, _res, next: NextFunction) => next(new Error()));
         app.use(uploadErrorHandlerMiddleware);
-        app.use(errorMiddleware);
+        app.use(errorMiddleware());
         return request(app)
             .get('/')
             .expect(500)
@@ -40,7 +40,7 @@ describe('uploadErrorHandlerMiddleware', function () {
         it(`should properly handle Multer errors (${error} => ${expectedCode})`, function () {
             app.use('/', (_req, _res, next: NextFunction) => next(new MulterError(error)));
             app.use(uploadErrorHandlerMiddleware);
-            app.use(errorMiddleware);
+            app.use(errorMiddleware());
             return request(app)
                 .get('/')
                 .expect(400)

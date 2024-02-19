@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { MulterError } from 'multer';
-import type { ErrorResponse } from '@myrotvorets/express-microservice-middlewares';
+import { ApiError } from '@myrotvorets/express-microservice-middlewares';
 import { cleanupFilesAfterMulter } from '@myrotvorets/clean-up-after-multer';
 
 const errorLookupTable: Record<string, string> = {
@@ -18,17 +18,12 @@ export function uploadErrorHandlerMiddleware(err: unknown, req: Request, _res: R
     cleanupFilesAfterMulter(req)
         .then(() => {
             if (err && typeof err === 'object' && err instanceof MulterError) {
-                const response: ErrorResponse = {
-                    success: false,
-                    status: 400,
-                    code: errorLookupTable[err.code] ?? 'BAD_REQUEST',
-                    message: err.message,
-                };
-
-                process.nextTick(next, response);
-            } else {
-                process.nextTick(next, err);
+                err = new ApiError(400, errorLookupTable[err.code] ?? 'BAD_REQUEST', err.message, {
+                    cause: err,
+                });
             }
+
+            process.nextTick(next, err);
         })
         .catch((e) => process.nextTick(next, e));
 }
