@@ -1,19 +1,14 @@
 import { type NextFunction, type Request, type Response, Router } from 'express';
 import { asyncWrapperMiddleware } from '@myrotvorets/express-async-middleware-wrapper';
-import { type ErrorResponse, numberParamHandler } from '@myrotvorets/express-microservice-middlewares';
+import { ApiError, numberParamHandler } from '@myrotvorets/express-microservice-middlewares';
 import type { LocalsWithContainer } from '../lib/container.mjs';
 
-function transformStreamError(e: Error): Error | ErrorResponse {
+function transformStreamError(e: Error): ApiError {
     if ('code' in e && e.code === 'ENOENT') {
-        return {
-            success: false,
-            status: 404,
-            code: 'NOT_FOUND',
-            message: 'File not found',
-        };
+        return new ApiError(404, 'NOT_FOUND', 'File not found', { cause: e });
     }
 
-    return e;
+    return new ApiError(500, 'UNKNOWN_ERROR', 'Unknown error', { cause: e });
 }
 
 interface SearchParams {
