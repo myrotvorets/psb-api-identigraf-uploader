@@ -1,20 +1,29 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import express, { type Express, json } from 'express';
+import express, { type Express, type Request, type Response, json } from 'express';
 import { installOpenApiValidator } from '@myrotvorets/oav-installer';
 import { errorMiddleware, notFoundMiddleware } from '@myrotvorets/express-microservice-middlewares';
 import { cleanUploadedFilesMiddleware } from '@myrotvorets/clean-up-after-multer';
 import { createServer, getTracer, recordErrorToSpan } from '@myrotvorets/otel-utils';
 import { memoryStorage } from 'multer';
+import {
+    type LoggerFromRequestFunction,
+    errorLoggerHook,
+    requestDurationMiddleware,
+    requestLoggerMiddleware,
+} from '@myrotvorets/express-otel-middlewares';
 
-import { initializeContainer, scopedContainerMiddleware } from './lib/container.mjs';
+import { type LocalsWithContainer, initializeContainer, scopedContainerMiddleware } from './lib/container.mjs';
+import { requestDurationHistogram } from './lib/otel.mjs';
+
 import { uploadErrorHandlerMiddleware } from './middleware/upload.mjs';
-import { requestDurationMiddleware } from './middleware/duration.mjs';
-import { loggerMiddleware } from './middleware/logger.mjs';
 
 import { downloadController } from './controllers/download.mjs';
 import { monitoringController } from './controllers/monitoring.mjs';
 import { uploadController } from './controllers/upload.mjs';
+
+const loggerFromRequest: LoggerFromRequestFunction = (req: Request) =>
+    (req.res as Response<never, LocalsWithContainer> | undefined)?.locals.container.resolve('logger');
 
 export function configureApp(app: express.Express): ReturnType<typeof initializeContainer> {
     return getTracer().startActiveSpan('configureApp', (span): ReturnType<typeof initializeContainer> => {
@@ -23,7 +32,13 @@ export function configureApp(app: express.Express): ReturnType<typeof initialize
             const env = container.resolve('environment');
             const base = dirname(fileURLToPath(import.meta.url));
 
-            app.use(requestDurationMiddleware, scopedContainerMiddleware, loggerMiddleware, json());
+            app.use(
+                requestDurationMiddleware(requestDurationHistogram),
+                scopedContainerMiddleware,
+                requestLoggerMiddleware('identigraf-uploader', loggerFromRequest),
+                json(),
+            );
+
             app.use('/monitoring', monitoringController(env));
 
             app.use(
@@ -41,7 +56,9 @@ export function configureApp(app: express.Express): ReturnType<typeof initialize
                 notFoundMiddleware,
                 cleanUploadedFilesMiddleware(),
                 uploadErrorHandlerMiddleware,
-                errorMiddleware(),
+                errorMiddleware({
+                    beforeSendHook: errorLoggerHook(loggerFromRequest),
+                }),
             );
 
             return container;
