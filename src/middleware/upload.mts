@@ -25,5 +25,5 @@ export function uploadErrorHandlerMiddleware(err: unknown, req: Request, _res: R
 
             process.nextTick(next, err);
         })
-        .catch((e) => process.nextTick(next, e));
+        .catch((e: unknown) => process.nextTick(next, e));
 }
