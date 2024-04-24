@@ -27,7 +27,7 @@ services:
     restart: always
 
   swagger:
-    image: swaggerapi/swagger-ui:latest@sha256:e9ed20f640483ccfa00561db0e23c629e8ba4d107b1078802f171908154733ba
+    image: swaggerapi/swagger-ui:latest@sha256:7e8a319e7f6e96b2328e7a244a0428e92e7d76671eb9b22679c9c1fc3dfcab51
     environment:
       - SWAGGER_JSON_URL=/specs/identigraf-uploader.yaml
       - BASE_URL=/swagger
