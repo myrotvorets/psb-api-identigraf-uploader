@@ -23,7 +23,7 @@ services:
     working_dir: /usr/src/service
 
   zipkin:
-    image: openzipkin/zipkin:latest@sha256:708983880c013c2232e75e3609b6e4c148ac869e51c72a109261688be3eb9229
+    image: openzipkin/zipkin:latest@sha256:da8177371c4a7aed7fd673196593c2ff104ce908f300e1971493587622f7a297
     restart: always
 
   swagger:
