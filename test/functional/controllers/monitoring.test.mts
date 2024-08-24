@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/assertions-in-tests */
 import { expect } from 'chai';
 import { type Express } from 'express';
 import request, { type Test } from 'supertest';

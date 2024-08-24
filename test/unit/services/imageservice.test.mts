@@ -35,7 +35,8 @@ describe('ImageService', function () {
     describe('#resize()', function () {
         it('should not enlarge the image', async function () {
             const result = service.resize(wideStream, 400);
-            return expect(metadata(result)).to.eventually.include({
+            const meta = await metadata(result);
+            expect(meta).to.include({
                 width: 200,
                 height: 100,
                 format: 'png',
@@ -96,9 +97,8 @@ describe('ImageService', function () {
     describe('#convertToJpeg()', function () {
         it('should convert files to JPG', async function () {
             const result = await service.convertToJpeg(wideStream);
-            return expect(metadata(result)).to.eventually.include({
-                format: 'jpeg',
-            });
+            const meta = await metadata(result);
+            expect(meta).to.include({ format: 'jpeg' });
         });
 
         it('should not modify JPG files', function () {

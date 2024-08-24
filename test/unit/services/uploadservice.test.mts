@@ -60,6 +60,7 @@ describe('UploadService', function () {
 
         it('should produce JPG files', async function () {
             const file: UploadedFile = {
+                // eslint-disable-next-line sonarjs/publicly-writable-directories -- fake path for tests
                 path: '/tmp/xxx.png',
                 destination: BASE_PATH,
                 buffer: Buffer.from(''),

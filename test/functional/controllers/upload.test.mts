@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/assertions-in-tests */
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect } from 'chai';
