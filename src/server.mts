@@ -44,6 +44,7 @@ export function configureApp(app: express.Express): ReturnType<typeof initialize
             app.use(
                 installOpenApiValidator(join(base, 'specs', 'identigraf-uploader-private.yaml'), env.NODE_ENV, {
                     fileUploader: {
+                        // eslint-disable-next-line sonarjs/content-length -- memory storage is used only in tests
                         storage: env.NODE_ENV === 'test' ? memoryStorage() : /* c8 ignore next */ undefined,
                         dest: env.IDENTIGRAF_UPLOAD_FOLDER,
                         limits: {
