@@ -17,7 +17,7 @@ export class DownloadService implements DownloadServiceInterface {
         this.#fileService = fileService;
     }
 
-    public getFile(guid: string, n?: number | undefined): NodeJS.ReadableStream {
+    public getFile(guid: string, n?: number): NodeJS.ReadableStream {
         let name = join(this.#basePath, hashGuid(guid), guid);
         if (n !== undefined) {
             name += `-${n}`;

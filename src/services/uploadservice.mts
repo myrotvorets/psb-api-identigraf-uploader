@@ -27,7 +27,7 @@ export class UploadService implements UploadServiceInterface {
         this.#imageService = imageService;
     }
 
-    public async uploadFile(file: UploadedFile, guid: string, n?: number | undefined): Promise<string> {
+    public async uploadFile(file: UploadedFile, guid: string, n?: number): Promise<string> {
         const f = file as unknown as UploadedFileInternal;
         let stream: NodeJS.ReadableStream = f.path
             ? this.#fileService.createReadStream(f.path)
