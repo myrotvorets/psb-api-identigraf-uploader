@@ -1,13 +1,13 @@
 /* eslint-disable sonarjs/no-nested-functions */
+import type { RequestListener } from 'node:http';
 import { dirname, resolve } from 'node:path';
+import { createReadStream } from 'node:fs';
+import { Readable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import { expect } from 'chai';
-import { type Express } from 'express';
 import request, { type Response } from 'supertest';
 import { asClass } from 'awilix';
-import { createReadStream } from 'node:fs';
-import { Readable } from 'node:stream';
 import { container } from '../../../src/lib/container.mjs';
 import { configureApp, createApp } from '../../../src/server.mjs';
 import { FakeFileService, createReadStreamMock } from '../../mocks/fakefileservice.mjs';
@@ -35,12 +35,13 @@ const createErrorStream = (code: string): Readable =>
     });
 
 describe('Download', function () {
-    let app: Express;
+    let app: RequestListener;
 
     before(async function () {
         await container.dispose();
-        app = createApp();
-        configureApp(app);
+        const application = createApp();
+        configureApp(application);
+        app = application as RequestListener;
         container.register('fileService', asClass(FakeFileService).singleton());
     });
 

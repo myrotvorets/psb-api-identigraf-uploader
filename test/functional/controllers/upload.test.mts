@@ -1,8 +1,8 @@
 /* eslint-disable sonarjs/assertions-in-tests */
+import type { RequestListener } from 'node:http';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect } from 'chai';
-import { type Express } from 'express';
 import request, { type Response } from 'supertest';
 import { asFunction } from 'awilix';
 import { configureApp, createApp } from '../../../src/server.mjs';
@@ -22,7 +22,7 @@ const checkUnsupportedMediaType = (res: Response): void => checkError(res, 415, 
 const checkBadRequest = (res: Response): void => checkError(res, 400, 'BAD_REQUEST');
 
 describe('Upload', function () {
-    let app: Express;
+    let app: RequestListener;
 
     function createMemFSService(): MemFSService {
         return new MemFSService();
@@ -30,8 +30,9 @@ describe('Upload', function () {
 
     before(async function () {
         await container.dispose();
-        app = createApp();
-        configureApp(app);
+        const application = createApp();
+        configureApp(application);
+        app = application as RequestListener;
         container.register('fileService', asFunction(createMemFSService).singleton());
     });
 

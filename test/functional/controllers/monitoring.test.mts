@@ -1,9 +1,9 @@
 /* eslint-disable sonarjs/assertions-in-tests */
+import type { RequestListener } from 'node:http';
+import { mock } from 'node:test';
 import { expect } from 'chai';
-import { type Express } from 'express';
 import request, { type Test } from 'supertest';
 import { asClass } from 'awilix';
-import { mock } from 'node:test';
 import { container } from '../../../src/lib/container.mjs';
 import { healthChecker } from '../../../src/controllers/monitoring.mjs';
 import { configureApp, createApp } from '../../../src/server.mjs';
@@ -11,10 +11,10 @@ import { sigtermResponse, spaceIssueResponse, uploadFolderIssueResponse } from '
 import { outOfInodesStats, outOfSpaceStats } from '../../fixtures/vfsstats.mjs';
 import { FakeFileService, accessMock, statvfsMock } from '../../mocks/fakefileservice.mjs';
 
-const checker200 = (app: Express, endpoint: string): Test =>
+const checker200 = (app: RequestListener, endpoint: string): Test =>
     request(app).get(`/monitoring/${endpoint}`).expect('Content-Type', /json/u).expect(200);
 
-const checker503 = (app: Express, endpoint: string, match: Record<string, unknown>): Test =>
+const checker503 = (app: RequestListener, endpoint: string, match: Record<string, unknown>): Test =>
     request(app)
         .get(`/monitoring/${endpoint}`)
         .expect('Content-Type', /json/u)
@@ -22,12 +22,13 @@ const checker503 = (app: Express, endpoint: string, match: Record<string, unknow
         .expect((res) => expect(res.body).to.be.an('object').and.containSubset(match));
 
 describe('MonitoringController', function () {
-    let app: Express;
+    let app: RequestListener;
 
     beforeEach(async function () {
         await container.dispose();
-        app = createApp();
-        configureApp(app);
+        const application = createApp();
+        configureApp(application);
+        app = application as RequestListener;
         container.register('fileService', asClass(FakeFileService).singleton());
         healthChecker.shutdownRequested = false;
     });
