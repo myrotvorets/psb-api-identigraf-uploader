@@ -1,4 +1,4 @@
-FROM ghcr.io/sjinks/codespaces/nodejs:latest@sha256:dac5f7d96edb3dabccd0e8e33325c636471b48a88386722c73a00ffe828f9e14
+FROM ghcr.io/sjinks/codespaces/nodejs:latest@sha256:d71df786593aa60335056e212db127d27d426cf8af08792e9ce74ea1d9b93a0e
 
 ENV SERVICE_NAME identigraf-uploader
 
