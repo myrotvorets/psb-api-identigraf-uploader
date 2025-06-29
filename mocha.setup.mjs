@@ -1,9 +1,7 @@
 import { use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import chaiSubset from 'chai-subset';
 
 use(chaiAsPromised);
-use(chaiSubset);
 
 const env = { ...process.env };
 
