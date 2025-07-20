@@ -34,7 +34,7 @@
     "envalid": "^8.1.0",
     "express": "^4.21.2",
     "multer": "^2.0.2",
-    "sharp": "^0.34.2"
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@myrotvorets/eslint-config-myrotvorets-ts": "^3.0.2",
