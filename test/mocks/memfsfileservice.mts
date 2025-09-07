@@ -1,6 +1,5 @@
 import type { MakeDirectoryOptions, PathLike } from 'node:fs';
-import { type IFs, Volume, createFsFromVolume } from 'memfs';
-import type { DirectoryJSON } from 'memfs/lib/volume.js';
+import { type DirectoryJSON, type IFs, Volume, createFsFromVolume } from 'memfs';
 import type { VFSStats } from '@wwa/statvfs';
 import type { FileServiceInterface } from '../services/fileserviceinterface.mjs';
 
