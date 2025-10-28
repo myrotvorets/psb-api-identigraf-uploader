@@ -40,7 +40,7 @@
     "@myrotvorets/eslint-config-myrotvorets-ts": "^3.0.2",
     "@types/chai": "^5.2.3",
     "@types/chai-as-promised": "^8.0.2",
-    "@types/express": "^5.0.4",
+    "@types/express": "^5.0.5",
     "@types/mocha": "^10.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.9.1",
