@@ -31,7 +31,7 @@
     "@opentelemetry/api": "^1.9.1",
     "@wwa/statvfs": "^1.1.18",
     "awilix": "^13.0.3",
-    "envalid": "^8.1.1",
+    "envalid": "^8.2.0",
     "express": "^5.2.1",
     "multer": "^2.1.1",
     "sharp": "^0.34.5"
