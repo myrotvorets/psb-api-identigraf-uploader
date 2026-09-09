@@ -34,7 +34,7 @@ export class ImageService implements ImageServiceInterface {
 
     private sharpenStream(input: NodeJS.ReadableStream): Sharp {
         if (input instanceof sharp) {
-            return input as Sharp;
+            return input;
         }
 
         const img = sharp({ sequentialRead: true });
