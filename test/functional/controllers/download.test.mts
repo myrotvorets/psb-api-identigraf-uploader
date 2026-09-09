@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-nested-functions */
 import type { RequestListener } from 'node:http';
 import { dirname, resolve } from 'node:path';
 import { createReadStream } from 'node:fs';
